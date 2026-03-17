@@ -1,0 +1,57 @@
+version: "1.1.0"
+level: L2
+role: project-template
+name: AgentTeam-Template
+description: 项目模板层 - 为具体项目提供Agent Team模板和管理框架
+
+hierarchy:
+  level: L2
+  position: 项目模板层
+  relationship:
+    depends_on: [L0, L1]
+    serves: L3
+
+dependencies:
+  L0:
+    name: SEARCH-R
+    path: ../SEARCH-R
+    type: methodology
+    description: 研究方法论支撑
+  L1:
+    name: agent-team-research
+    path: ../agent-team-research
+    type: research-support
+    description: 研究能力支撑
+    submodule:
+      enabled: true
+      path: .agent-team/research
+
+provides:
+  to: [L3]
+  components:
+    - pm-agent
+    - agent-templates
+    - management-framework
+    - workflow-skills
+
+templates:
+  core-team: agents/_templates/core-team/AGENTS.md.template
+  ai-team: agents/_templates/ai-team/AGENTS.md.template
+  test-team: agents/_templates/test-team/AGENTS.md.template
+  integration-team: agents/_templates/integration-team/AGENTS.md.template
+  research-team: agents/_templates/research-team/AGENTS.md.template
+
+collaboration:
+  research_delegation: collaboration/research-requests/
+  dependency_docs: collaboration/dependencies/
+
+project:
+  name: PM Agent Template
+  version: "1.1.0"
+  description: 独立的项目管理 Agent 模板
+
+metadata:
+  created: "2026-03-07"
+  migration_date: "2026-03-08"
+  maintainer: Migration Agent
+  migration_version: "1.0"

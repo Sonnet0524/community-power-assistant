@@ -1,0 +1,136 @@
+# Agent Team Memory Index
+# 记忆索引：定义 Agent 记忆的加载优先级和路径
+
+version: "1.0"
+last_updated: "2026-03-08"
+
+# 加载优先级定义
+priority_levels:
+  P0: "必须加载 - 身份记忆 (启动时)"
+  P1: "推荐加载 - 状态记忆 (工作时)"
+  P2: "可选加载 - 会话记忆 (需要时)"
+  P3: "按需加载 - 经验记忆 (遇到问题时)"
+
+# Agent 记忆索引
+agents:
+  pm:
+    identity:
+      path: "agents/pm/AGENTS.md"
+      priority: P0
+      estimated_tokens: 5000
+      description: "PM Agent 身份定义"
+    
+    state:
+      path: "agents/pm/CATCH_UP.md"
+      priority: P0
+      estimated_tokens: 3000
+      description: "PM Agent 当前状态"
+    
+    essentials:
+      path: "agents/pm/ESSENTIALS.md"
+      priority: P1
+      estimated_tokens: 4000
+      description: "PM Agent 核心指南"
+    
+    workflow:
+      path: "agents/pm/WORKFLOW.md"
+      priority: P1
+      estimated_tokens: 3000
+      description: "Agent 管理工作流程"
+    
+    session:
+      path: "agents/pm/session-log.md"
+      priority: P2
+      estimated_tokens: 2000
+      description: "PM Agent 会话记录"
+    
+    guides:
+      path: "agents/pm/guides/"
+      priority: P3
+      load_mode: "on-demand"
+      description: "详细操作指南"
+    
+    experiences:
+      path: "agents/pm/experiences/"
+      priority: P3
+      load_mode: "on-demand"
+      description: "PM Agent 经验积累"
+    
+    init:
+      path: "agents/pm/INIT.md"
+      priority: P0
+      load_once: true
+      description: "首次启动指南"
+
+# Skills 索引
+skills:
+  git-workflow:
+    path: "framework/skills/workflow/git-workflow.md"
+    priority: P1
+    description: "Git 工作流程"
+  
+  review-process:
+    path: "framework/skills/workflow/review-process.md"
+    priority: P1
+    description: "代码审查流程"
+  
+  quality-gate:
+    path: "framework/skills/decision-support/quality-gate.md"
+    priority: P1
+    description: "质量门控"
+
+# 参考资源索引
+references:
+  archive:
+    path: "archive/"
+    priority: P3
+    load_mode: "on-demand"
+    description: "实践经验库"
+  
+  templates:
+    path: "agents/_templates/"
+    priority: P3
+    load_mode: "on-demand"
+    description: "Agent 模板库"
+  
+  knowledge-base:
+    path: "knowledge-base/"
+    priority: P3
+    load_mode: "on-demand"
+    description: "项目知识库"
+
+# 记忆压缩规则（未来实现）
+compression_rules:
+  - name: "session-to-experiences"
+    trigger: "session-end"
+    action: "extract-lessons"
+    source: "agents/pm/session-log.md"
+    target: "agents/pm/experiences/"
+    description: "会话结束时，提取经验到 experiences"
+  
+  - name: "state-archive"
+    trigger: "project-milestone"
+    action: "archive"
+    source: "agents/pm/CATCH_UP.md"
+    target: "archive/project-history/"
+    description: "项目里程碑时，归档历史状态"
+
+# 三级文档体系规范
+document_hierarchy:
+  level_0:
+    name: "必需层"
+    max_lines: 50
+    examples: ["CATCH_UP.md"]
+    load_timing: "启动时"
+  
+  level_1:
+    name: "按需层"
+    max_lines: 100
+    examples: ["ESSENTIALS.md", "WORKFLOW.md"]
+    load_timing: "工作时"
+  
+  level_2:
+    name: "参考层"
+    max_lines: null
+    examples: ["guides/", "experiences/", "archive/"]
+    load_timing: "按需查询"

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "pm": {
+      "description": "PM - 小区供电服务信息助理项目管理Agent",
+      "mode": "primary",
+      "prompt": "{file:./agents/pm/AGENTS.md}",
+      "skills": [
+        "framework/skills/workflow/git-workflow.md",
+        "framework/skills/workflow/review-process.md",
+        "framework/skills/decision-support/quality-gate.md"
+      ],
+      "memory_index": "framework/memory-index.yaml",
+      "permission": {
+        "edit": "ask",
+        "bash": {
+          "git push": "ask",
+          "git *": "allow"
+        }
+      }
+    }
+  }
+}

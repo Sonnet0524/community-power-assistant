@@ -1,0 +1,8 @@
+
+# Symbolic links to upper layers (will be replaced with submodules)
+.agent-team/search-r
+.agent-team/research
+
+.env
+.env.local
+.env.*.local
