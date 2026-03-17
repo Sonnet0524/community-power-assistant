@@ -1,0 +1,398 @@
+# OpenClaw Configuration for Field Info Collector Agent
+# 现场信息收集智能体 - OpenClaw配置文件
+
+name: FieldInfoCollector
+version: 1.0.0
+description: 基于OpenClaw的现场信息收集智能体，支持企业微信交互、KIMI多模态分析、文档自动生成
+
+# ============================================
+# 渠道配置 (Channels)
+# ============================================
+channels:
+  wecom:
+    enabled: true
+    provider: wecom-openclaw-plugin
+    corp_id: "${WECOM_CORP_ID}"
+    agent_id: "${WECOM_AGENT_ID}"
+    secret: "${WECOM_SECRET}"
+    token: "${WECOM_TOKEN}"
+    encoding_aes_key: "${WECOM_ENCODING_AES_KEY}"
+    callback_url: "${WECOM_CALLBACK_URL}"
+    
+    # 支持的消息类型
+    supported_message_types:
+      - text        # 文字消息
+      - image       # 图片消息 ⭐
+      - location    # 位置消息 ⭐
+    
+    # 消息处理配置
+    message_handling:
+      max_image_size: 2097152      # 2MB (企业微信限制)
+      image_quality: "high"         # 图片质量
+      download_timeout: 30          # 下载超时(秒)
+
+# ============================================
+# 技能配置 (Skills)
+# ============================================
+skills:
+  # 技能1: 驻点工作引导
+  station_work_guide:
+    enabled: true
+    priority: high
+    triggers:
+      - type: intent
+        patterns:
+          - "驻点"
+          - "去.*社区"
+          - "配电房"
+          - "客户走访"
+          - "应急通道"
+          - "开始.*工作"
+    config:
+      max_session_duration: 7200    # 2小时
+      auto_save_interval: 300       # 5分钟自动保存
+      
+  # 技能2: AI照片分析（简化版 - 直接使用OpenClaw多模态能力）
+  vision_analysis:
+    enabled: true
+    priority: high
+    triggers:
+      - type: message_type
+        value: "image"
+      - type: command
+        pattern: "分析.*照片|批量分析|开始分析"
+    config:
+      # 使用OpenClaw LLM配置中的vision_analysis
+      use_llm_vision: true          # 直接使用LLM多模态能力 ⭐
+      auto_analyze: true            # 自动分析
+      batch_size: 10                # 批量分析数量
+      async_mode: true              # 异步处理
+      timeout: 300                  # 分析超时(秒)
+      save_results: true            # 自动保存到数据库
+      confidence_threshold: 0.7     # 置信度阈值
+      
+  # 技能3: 文档自动生成
+  doc_generation:
+    enabled: true
+    priority: medium
+    triggers:
+      - type: event
+        value: "collection_completed"
+      - type: command
+        pattern: "生成.*报告"
+    config:
+      default_format: "docx"
+      template_dir: "./templates"
+      output_dir: "./output"
+      
+  # 技能4: 应急处理引导
+  emergency_guide:
+    enabled: true
+    priority: high
+    triggers:
+      - type: intent
+        patterns:
+          - "应急"
+          - "紧急"
+          - "抢修"
+          - "故障"
+          - "危险"
+    config:
+      fast_track: true              # 快速通道
+      auto_notify: true             # 自动通知
+
+# ============================================
+# 工具配置 (Tools)
+# ============================================
+# 注意：照片分析使用OpenClaw LLM多模态能力，无需单独Tool
+# 相关配置在 llm.vision_analysis 中 ⭐
+tools:
+  # 工具1: PostgreSQL数据库
+  postgres_query:
+    enabled: true
+    config:
+      host: "${POSTGRES_HOST}"
+      port: "${POSTGRES_PORT}"
+      database: "${POSTGRES_DB}"
+      username: "${POSTGRES_USER}"
+      password: "${POSTGRES_PASSWORD}"
+      pool_size: 10
+      ssl: false
+      
+  # 工具2: MinIO对象存储
+  minio_storage:
+    enabled: true
+    config:
+      endpoint: "${MINIO_ENDPOINT}"
+      access_key: "${MINIO_ACCESS_KEY}"
+      secret_key: "${MINIO_SECRET_KEY}"
+      bucket: "${MINIO_BUCKET}"
+      region: "us-east-1"
+      use_ssl: false
+      
+  # 工具3: Word文档生成
+  docx_generator:
+    enabled: true
+    config:
+      template_path: "./templates"
+      temp_path: "./temp"
+      fonts:
+        - "SimSun"
+        - "SimHei"
+        - "Microsoft YaHei"
+
+# ============================================
+# 会话管理配置 (Session)
+# ============================================
+session:
+  storage: redis
+  
+  redis:
+    host: "${REDIS_HOST}"
+    port: "${REDIS_PORT}"
+    password: "${REDIS_PASSWORD}"
+    db: 0
+    
+  timeout: 7200                   # 会话超时(秒) = 2小时
+  persistence: true               # 持久化会话
+  cleanup_interval: 3600          # 清理间隔(秒)
+  
+  # 自定义会话数据结构
+  custom_fields:
+    - community_id
+    - community_name
+    - work_phase
+    - collected_photos
+    - analysis_results
+    - generated_docs
+
+# ============================================
+# LLM配置
+# ============================================
+llm:
+  default_provider: kimi
+  
+  kimi:
+    api_key: "${KIMI_API_KEY}"
+    base_url: "https://api.moonshot.cn/v1"
+    model: "kimi-k2.5"
+    temperature: 0.3
+    max_tokens: 4096
+    
+    # 多模态照片分析专用配置 ⭐
+    vision_analysis:
+      enabled: true
+      system_prompt: |
+        你是电力设备检测专家，具有10年以上电力设备巡检经验。
+        用户会发送电力设备现场照片，请进行专业分析并提供改进建议。
+        
+        分析维度：
+        1. 设备识别：准确识别设备类型、型号
+        2. 状态评估：判断设备运行状态
+        3. 缺陷检测：发现外观、连接、绝缘、运行等方面问题
+        4. 安全评估：识别安全隐患
+        5. 改进建议：给出具体的处理建议
+        
+        必须严格按JSON格式返回结果。
+      
+      # 分析提示词模板
+      prompts:
+        single_image: |
+          请仔细分析这张电力设备照片，按以下JSON格式返回分析结果：
+          {
+            "device_type": "设备类型（变压器/高压柜/低压柜/电缆/计量装置/其他）",
+            "device_subtype": "设备子类型（如：箱式变压器、干式变压器等）",
+            "status": "normal|attention|abnormal|danger",
+            "confidence": 0-1,
+            "findings": [
+              {
+                "category": "appearance|connection|insulation|operation|label|environment",
+                "description": "缺陷描述",
+                "severity": "low|medium|high|critical",
+                "location": "位置描述"
+              }
+            ],
+            "safety_issues": ["安全隐患1", "安全隐患2"],
+            "recommendations": ["建议1", "建议2"],
+            "summary": "一句话分析摘要"
+          }
+        
+        batch_images: |
+          你正在分析同一配电房的{{photo_count}}张照片。请进行批量分析：
+          
+          分析要求：
+          1. 分别识别每张照片中的设备
+          2. 评估每台设备的状态
+          3. 发现设备间的关联问题
+          4. 识别共性问题（环境、标识等）
+          5. 给出整体评估和优先处理建议
+          
+          按JSON格式返回：
+          {
+            "overall_assessment": {
+              "facility_type": "配电房类型",
+              "overall_status": "normal|attention|abnormal|danger",
+              "total_devices": 数量,
+              "issues_found": 问题数量,
+              "critical_issues": 严重问题数量,
+              "score": 0-100
+            },
+            "per_image_analysis": [
+              {
+                "image_index": 0,
+                "device_type": "设备类型",
+                "status": "状态",
+                "findings": [],
+                "recommendations": []
+              }
+            ],
+            "common_issues": ["共性问题1"],
+            "priority_actions": ["优先处理1"],
+            "summary": "整体评估摘要"
+          }
+  
+  # 意图识别专用配置
+  intent_recognition:
+    provider: kimi
+    model: "kimi-k2.5"
+    temperature: 0.1              # 更确定的输出
+    system_prompt: |
+      你是一个电力行业现场工作助手的意图识别模块。
+      用户是企业微信上的供电所驻点人员。
+      请分析用户消息，识别其工作意图。
+      
+      可能的意图类型：
+      - start_station_work: 开始驻点工作（提到去社区、驻点等）
+      - collect_power_room: 配电房信息采集（提到配电房、变压器等）
+      - collect_customer: 客户走访（提到客户、走访、用户等）
+      - collect_emergency: 应急通道采集（提到应急、通道、位置等）
+      - complete_collection: 完成采集（提到完成、结束、生成报告等）
+      - query_info: 查询信息（提到查看、查询、历史等）
+      - general_chat: 一般对话
+      
+      只输出JSON格式：{"intent": "类型", "confidence": 0-1, "entities": {...}}
+
+# ============================================
+# 日志配置
+# ============================================
+logging:
+  level: info
+  format: json
+  output: file
+  file: "./logs/field-collector.log"
+  max_size: 100                   # MB
+  max_backups: 10
+  max_age: 30                     # days
+  
+  # 敏感信息脱敏
+  sensitive_fields:
+    - "api_key"
+    - "secret"
+    - "password"
+    - "token"
+
+# ============================================
+# 知识库配置
+# ============================================
+knowledge_base:
+  enabled: true
+  storage: postgres
+  
+  # 社区信息表
+  communities:
+    table: "communities"
+    versioned: true
+    
+  # 采集历史表
+  collections:
+    table: "field_collections"
+    versioned: true
+    
+  # 照片存储
+  photos:
+    storage: minio
+    bucket: "field-photos"
+    versioning: true
+    
+  # 文档存储
+  documents:
+    storage: minio
+    bucket: "field-documents"
+    versioning: true
+
+# ============================================
+# 安全与权限
+# ============================================
+security:
+  # 数据加密
+  encryption:
+    enabled: true
+    algorithm: "AES-256-GCM"
+    key_rotation_interval: 86400  # 24小时
+    
+  # 访问控制
+  access_control:
+    enabled: true
+    rbac: true
+    default_role: "field_worker"
+    
+  # 审计日志
+  audit:
+    enabled: true
+    log_all_operations: true
+    retention_days: 365
+
+# ============================================
+# 性能与限流
+# ============================================
+performance:
+  # 并发控制
+  concurrency:
+    max_concurrent_sessions: 100
+    max_requests_per_session: 50
+    
+  # 限流
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 60
+    
+  # 缓存
+  caching:
+    enabled: true
+    ttl: 3600
+
+# ============================================
+# 监控与告警
+# ============================================
+monitoring:
+  metrics:
+    enabled: true
+    endpoint: "/metrics"
+    
+  health_check:
+    enabled: true
+    endpoint: "/health"
+    interval: 30
+    
+  alerts:
+    enabled: true
+    channels:
+      - wecom
+      - email
+    thresholds:
+      error_rate: 0.05
+      response_time: 5000
+      queue_depth: 100
+
+# ============================================
+# 开发配置
+# ============================================
+development:
+  debug: false
+  hot_reload: false
+  
+  # 测试模式
+  test_mode:
+    enabled: false
+    mock_llm: false
+    mock_storage: false

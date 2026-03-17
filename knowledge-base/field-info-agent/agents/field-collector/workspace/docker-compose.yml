@@ -1,0 +1,202 @@
+# ============================================================
+# Field Info Collector - Docker Compose配置
+# 现场信息收集智能体 - 基础设施编排
+# ============================================================
+
+version: '3.8'
+
+services:
+  # ==========================================================
+  # 1. PostgreSQL - 主数据库
+  # ==========================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: field-collector-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: field_info_db
+      POSTGRES_USER: ${POSTGRES_USER:-fieldcollector}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/migrations:/docker-entrypoint-initdb.d/migrations:ro
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - field-collector-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fieldcollector} -d field_info_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ==========================================================
+  # 2. MinIO - 对象存储（照片、文档）
+  # ==========================================================
+  minio:
+    image: minio/minio:latest
+    container_name: field-collector-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MINIO_BROWSER_REDIRECT_URL: ${MINIO_BROWSER_REDIRECT_URL:-http://localhost:9001}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    networks:
+      - field-collector-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+
+  # MinIO初始化 - 创建必要的buckets
+  minio-init:
+    image: minio/mc:latest
+    container_name: field-collector-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      sleep 10;
+      /usr/bin/mc config host add local http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin};
+      /usr/bin/mc mb local/field-photos || true;
+      /usr/bin/mc mb local/field-documents || true;
+      /usr/bin/mc mb local/field-temp || true;
+      /usr/bin/mc policy set download local/field-documents;
+      /usr/bin/mc ilm add local/field-temp --expiry-days 7;
+      exit 0;
+      "
+    networks:
+      - field-collector-network
+
+  # ==========================================================
+  # 3. Redis - 会话缓存
+  # ==========================================================
+  redis:
+    image: redis:7-alpine
+    container_name: field-collector-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - field-collector-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # ==========================================================
+  # 4. OpenClaw Gateway（可选，如需要本地部署）
+  # ==========================================================
+  # 注意：OpenClaw Gateway通常是独立部署的，这里仅作为参考
+  # openclaw-gateway:
+  #   image: openclaw/gateway:latest
+  #   container_name: field-collector-openclaw
+  #   restart: unless-stopped
+  #   environment:
+  #     - REDIS_URL=redis://redis:6379
+  #     - DATABASE_URL=postgresql://${POSTGRES_USER:-fieldcollector}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/field_info_db
+  #   ports:
+  #     - "8080:8080"
+  #   networks:
+  #     - field-collector-network
+  #   depends_on:
+  #     - postgres
+  #     - redis
+
+# ==========================================================
+# 卷定义
+# ==========================================================
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH:-./data}/postgres
+
+  minio_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH:-./data}/minio
+
+  redis_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_PATH:-./data}/redis
+
+# ==========================================================
+# 网络定义
+# ==========================================================
+networks:
+  field-collector-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# ==========================================================
+# 使用说明
+# ==========================================================
+# 
+# 1. 启动所有服务：
+#    docker-compose up -d
+#
+# 2. 查看服务状态：
+#    docker-compose ps
+#
+# 3. 查看日志：
+#    docker-compose logs -f postgres
+#    docker-compose logs -f minio
+#    docker-compose logs -f redis
+#
+# 4. 停止服务：
+#    docker-compose down
+#
+# 5. 完全重置（删除数据）：
+#    docker-compose down -v
+#    rm -rf ./data
+#
+# 6. 备份数据：
+#    docker-compose exec postgres pg_dump -U fieldcollector field_info_db > backup.sql
+#
+# 7. 访问MinIO控制台：
+#    http://localhost:9001 (默认: minioadmin/minioadmin)
+#
+# ==========================================================
