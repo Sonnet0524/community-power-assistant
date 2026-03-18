@@ -1,221 +1,207 @@
-# 小区供电服务信息助理 (Community Power Assistant)
+# Community Power Assistant
 
-> **基于 PM Agent Template 的项目**
->
-> 基于 OpenCode 框架开发的小区驻点服务助理系统。
-> 该项目是 PM Agent 模板的实例化项目，L3 应用层。
->
-> **模板来源**: `agent-team-template` (L2 层)
+> 🏠 小区供电服务智能化解决方案
+> 
+> 包含 **开发工具框架** 和 **Field Info Agent 应用项目**
 
-> 🤖 为小区供电服务提供智能化信息管理和服务支持
-
-**版本**: 1.0.0 | **状态**: 初始化中 | **更新**: 2026-03-17
+**版本**: 1.0.0 | **状态**: 开发中 | **更新**: 2026-03-18
 
 ---
 
-## 💡 什么是 PM Agent？
+## 📋 仓库结构
 
-PM Agent 是一个**独立的项目管理工具**，能够：
+本仓库包含两个核心部分：
 
-- 🎯 **项目规划** - 理解项目目标，设计执行方案
-- 👥 **团队组建** - 根据需要动态创建 Agent Team
-- 📋 **任务管理** - 分配任务、跟踪进度、验收成果
-- 📝 **文档管理** - 维护项目文档和知识库
-- 🔍 **质量保证** - 代码审查、测试验收
+```
+community-power-assistant/
+│
+├── 📁 agents/                    # 开发工具 - Agent 框架
+│   ├── pm/                       # PM Agent（项目管理）
+│   └── _templates/               # Team Agent 模板库
+│
+├── 📁 framework/                 # 开发工具 - 框架支持
+│   ├── skills/                   # 通用技能
+│   └── memory-index.yaml         # 记忆索引
+│
+├── 📁 knowledge-base/            # 🎯 应用项目 - Field Info Agent
+│   └── field-info-agent/         # 现场信息收集智能体
+│
+├── 📁 tasks/                     # 任务文件
+├── 📁 reports/                   # 报告文件
+└── 📁 status/                    # 状态跟踪
+```
 
-### 核心理念
+| 部分 | 类型 | 说明 |
+|------|------|------|
+| `agents/`, `framework/` | 开发工具 | 通用的 Agent 开发框架，可复用于其他项目 |
+| `knowledge-base/` | 应用项目 | Field Info Agent 具体业务实现 |
+
+---
+
+## 🎯 应用项目：Field Info Agent
+
+### 项目简介
+
+**Field Info Agent（现场信息收集智能体）** 是一个基于 OpenClaw 框架的驻点工作辅助系统，为供电所驻点人员提供智能化信息收集和分析服务。
+
+### 核心功能
+
+| 功能 | 说明 |
+|------|------|
+| 🔌 **驻点工作引导** | 自然语言交互，动态生成工作清单，引导现场采集流程 |
+| 🔍 **AI 照片分析** | KIMI 2.5 多模态分析，识别电力设备、检测缺陷、评估状态 |
+| 📄 **文档自动生成** | 自动生成驻点工作记录表、设备缺陷报告等 Word 文档 |
+| 🚨 **应急处理引导** | 快速记录应急信息，GPS 位置标注，一键上报 |
+
+### 技术架构
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     企业微信（交互渠道）                       │
+└─────────────────────────────┬───────────────────────────────┘
+                              │ WebSocket 长连接
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   OpenClaw Gateway                           │
+│              (Agent 运行时 + 多模态 LLM)                       │
+└─────────────────────────────┬───────────────────────────────┘
+                              │
+        ┌─────────────────────┼─────────────────────┐
+        ▼                     ▼                     ▼
+┌───────────────┐    ┌───────────────┐    ┌───────────────┐
+│  PostgreSQL   │    │    MinIO      │    │    Redis      │
+│  (业务数据)    │    │  (照片/文档)   │    │   (会话缓存)   │
+└───────────────┘    └───────────────┘    └───────────────┘
+```
+
+**技术栈**：
+- **Agent 框架**: OpenClaw
+- **AI 模型**: KIMI 2.5（多模态）
+- **渠道**: 企业微信 WebSocket 长连接
+- **存储**: PostgreSQL + MinIO + Redis
+- **文档**: Word (.docx)
+
+### 关键设计
+
+#### 1. Skills 架构（遵循 OpenClaw 标准）
+
+Skills 采用 `SKILL.md` (Markdown) 定义能力指南，在 `openclaw.config.yaml` 中配置触发器：
+
+| Skill | 文件 | 职责 |
+|-------|------|------|
+| station-work-guide | `skills/station-work-guide/SKILL.md` | 驻点工作流程引导 |
+| vision-analysis | `skills/vision-analysis/SKILL.md` | AI 照片智能分析 |
+| doc-generation | `skills/doc-generation/SKILL.md` | 文档自动生成 |
+| emergency-guide | `skills/emergency-guide/SKILL.md` | 应急处理引导 |
+
+详见：[OpenClaw Skills 开发标准](knowledge-base/field-info-agent/OPENCLAW-SKILLS-STANDARD.md)
+
+#### 2. 零命令自然语言交互
+
+```
+用户: 我今天要去阳光社区驻点
+Agent: 📋 已为您准备阳光社区驻点工作...
+
+用户: [发送变压器照片]
+Agent: 🔍 分析结果：箱式变压器，状态正常...
+
+用户: 采集完成
+Agent: ✅ 已生成工作报告，点击下载...
+```
+
+#### 3. 本地化数据存储
+
+所有数据存储在本地服务器，符合电力行业安全规范：
+- PostgreSQL: 业务数据 + 版本化知识库
+- MinIO: 照片 + 生成的文档
+- Redis: 会话状态缓存
+
+### 📚 项目文档导航
+
+#### 快速了解
+
+| 文档 | 路径 | 说明 |
+|------|------|------|
+| **项目总览** | [knowledge-base/field-info-agent/README.md](knowledge-base/field-info-agent/README.md) | 项目介绍和最新状态 ⭐ |
+| **实现总结** | [knowledge-base/field-info-agent/IMPLEMENTATION-SUMMARY.md](knowledge-base/field-info-agent/IMPLEMENTATION-SUMMARY.md) | 已完成组件清单 ⭐ |
+| **Skills 标准** | [knowledge-base/field-info-agent/OPENCLAW-SKILLS-STANDARD.md](knowledge-base/field-info-agent/OPENCLAW-SKILLS-STANDARD.md) | 开发规范 ⭐ |
+
+#### 设计文档
+
+| 文档 | 路径 | 说明 |
+|------|------|------|
+| 详细设计 v2.1 | [design/detailed-design-v2.md](knowledge-base/field-info-agent/design/detailed-design-v2.md) | 完整技术方案 |
+| 存储设计 v2.2 | [design/storage-change-v2.2.md](knowledge-base/field-info-agent/design/storage-change-v2.2.md) | 本地存储方案 |
+| 可行性验证 | [design/openclaw-feasibility-verification.md](knowledge-base/field-info-agent/design/openclaw-feasibility-verification.md) | OpenClaw 框架验证 |
+
+#### 开发任务
+
+| 文档 | 路径 | 说明 |
+|------|------|------|
+| 任务清单 | [tasks/TASK-LIST-field-info-agent.md](tasks/TASK-LIST-field-info-agent.md) | 所有开发任务 |
+| TASK-001 | [tasks/TASK-001-environment-setup.md](tasks/TASK-001-environment-setup.md) | 基础环境搭建 |
+| TASK-002 | [tasks/TASK-002-wps-api-tool.md](tasks/TASK-002-wps-api-tool.md) | WPS API 工具开发 |
+| TASK-003 | [tasks/TASK-003-wecom-channel.md](tasks/TASK-003-wecom-channel.md) | 企业微信渠道配置 |
+
+#### 实现文件
+
+| 文件 | 路径 | 说明 |
+|------|------|------|
+| Agent 定义 | [agents/field-collector/AGENTS.md](knowledge-base/field-info-agent/agents/field-collector/AGENTS.md) | OpenClaw Agent 角色 |
+| 主配置 | [agents/field-collector/openclaw.config.yaml](knowledge-base/field-info-agent/agents/field-collector/openclaw.config.yaml) | OpenClaw 配置 |
+| 数据库 Schema | [workspace/database/schema.sql](knowledge-base/field-info-agent/agents/field-collector/workspace/database/schema.sql) | PostgreSQL 结构 |
+| Docker 编排 | [workspace/docker-compose.yml](knowledge-base/field-info-agent/agents/field-collector/workspace/docker-compose.yml) | 基础设施 |
+
+---
+
+## 🛠️ 开发工具：Agent 框架
+
+### 什么是 PM Agent？
+
+PM Agent 是本仓库内置的**项目管理智能体**，作为开发工具协调项目开发：
 
 ```
 PM Agent (中心协调者)
     ↓ 创建和管理
-Team A → Team B → Team C (执行者)
+Team Agent → Team Agent → Team Agent (执行者)
     ↓ 报告
 PM Agent (汇总验收)
 ```
 
-**关键原则**：
-- ✅ **主动启动** - 分配任务后立即启动 Agent
-- ❌ **不轮询** - 不主动检查 Agent 进度
-- ✅ **被动接收** - 等待 Agent 报告完成
-- 📄 **文档化交互** - 通过文档交换信息
+**核心能力**：
+- 🎯 项目规划 - 理解项目目标，设计执行方案
+- 👥 团队组建 - 根据需要动态创建 Agent Team
+- 📋 任务管理 - 分配任务、跟踪进度、验收成果
+- 📝 文档管理 - 维护项目文档和知识库
 
----
+### 如何使用开发工具
 
-## 📁 目录结构
-
-```
-pm-agent-template/
-├── agents/
-│   ├── pm/                           # PM Agent（核心）
-│   │   ├── AGENTS.md                 # 身份定义
-│   │   ├── CATCH_UP.md               # 状态记忆（通用化）
-│   │   ├── INIT.md                   # 首次启动指南 ⭐
-│   │   ├── WORKFLOW.md               # 工作流程
-│   │   ├── ESSENTIALS.md             # 核心指南
-│   │   ├── session-log.md            # 会话记录
-│   │   ├── experiences/              # 经验积累
-│   │   └── guides/                   # 详细指南
-│   │
-│   └── _templates/                   # Agent 模板库 ⭐
-│       ├── core-team/                # 数据处理 Team 模板
-│       ├── ai-team/                  # AI Team 模板
-│       ├── test-team/                # 测试 Team 模板
-│       ├── integration-team/         # 集成 Team 模板
-│       ├── research-team/            # 研究 Team 模板
-│       └── TEMPLATE-GUIDE.md         # 模板使用指南
-│
-├── framework/
-│   ├── memory-index.yaml             # 记忆索引
-│   └── skills/
-│       ├── workflow/
-│       │   ├── git-workflow.md       # Git 工作流
-│       │   └── review-process.md     # 代码审查流程
-│       └── decision-support/
-│           └── quality-gate.md       # 质量门控
-│
-├── status/
-│   ├── agent-status.md               # 团队状态跟踪
-│   └── human-admin.md                # 用户总览
-│
-├── archive/                          # 实践经验库 ⭐
-│   └── sg-agentteam-experiences/     # SG-AgentTeam 的实践经验
-│
-├── tasks/                            # 动态：任务文件
-├── reports/                          # 动态：报告文件
-├── logs/                             # 动态：日志文件
-├── issues/                           # 问题管理
-├── knowledge-base/                   # 项目知识库
-├── start-pm.sh                       # 启动脚本（Unix）
-├── start-pm.bat                      # 启动脚本（Windows）
-├── opencode.json                     # OpenCode 配置
-└── README.md                         # 本文件
-```
-
----
-
-## 🚀 快速开始
-
-### 1. 安装 OpenCode CLI
-
-```bash
-pip install opencode
-```
-
-### 2. 配置 OpenCode
-
-编辑 OpenCode 配置，添加本项目：
-
-```bash
-# 编辑配置文件
-# Linux/Mac: ~/.config/opencode/config.yaml
-# Windows: %APPDATA%\opencode\config.yaml
-
-projects:
-  pm-agent-template:
-    path: /path/to/pm-agent-template
-```
-
-### 3. 首次启动 PM Agent
+#### 1. 启动 PM Agent
 
 ```bash
 # 进入项目目录
-cd pm-agent-template
+cd community-power-assistant
 
 # 启动 PM Agent
 ./start-pm.sh
 # Windows: start-pm.bat
 ```
 
-### 4. 初始化项目
-
-PM Agent 首次启动后会读取 `INIT.md`，引导你完成：
-
-1. **理解项目目标** - 询问 Human 项目基本信息
-2. **设计 Agent Team** - 根据需求选择 Team 模板
-3. **初始化项目文档** - 更新状态文档
-4. **开始工作** - 创建第一个任务
-
----
-
-## 📖 使用模式
-
-### 模式 1: PM Agent 独立工作
-
-适用于简单任务：
-
-```bash
-# 启动 PM Agent
-./start-pm.sh
-
-# PM Agent 通过 task 工具启动临时 agent 执行任务
-```
-
-### 模式 2: Agent Team 协作
-
-适用于复杂项目：
-
-```bash
-# 1. PM Agent 设计 Team 结构
-# 2. 从 _templates/ 创建 Team
-# 3. 分配任务给 Team
-# 4. Team 执行并报告
-# 5. PM Agent 验收并继续
-```
-
-**示例流程**：
+#### 2. PM Agent 工作流程
 
 ```
-Human: "开发一个 CSV 数据处理工具"
-    ↓
-PM Agent: 理解需求，决定需要 Core Team
-    ↓
-PM Agent: 从 _templates/core-team 创建 agents/csv-core/
-    ↓
-PM Agent: 创建任务 tasks/csv-core-task-001.md
-    ↓
-PM Agent: 启动 Core Team
-    opencode run --agent csv-core "任务..."
-    ↓
-Core Team: 执行任务，写入 reports/csv-core-report-001.md
-    ↓
-PM Agent: 读取报告，验收成果
-    ↓
-PM Agent: 继续下一步或报告给 Human
+1. 读取 CATCH_UP.md（了解当前状态）
+   ↓
+2. 继续未完成的任务或开始新任务
+   ↓
+3. 通过 task 工具或启动 Team Agent 执行
+   ↓
+4. 验收报告，更新文档
 ```
 
----
+#### 3. Team Agent 模板
 
-## 🎯 PM Agent 核心能力
-
-### 三级文档体系
-
-```
-Level 0 - 必需层 (CATCH_UP.md) <50行
-  └─ 启动时读取，了解当前状态
-
-Level 1 - 按需层 (ESSENTIALS.md, WORKFLOW.md) <100行
-  └─ 工作时按需读取
-
-Level 2 - 参考层 (guides/, experiences/, archive/)
-  └─ 遇到问题时参考
-```
-
-**效果**：
-- Context 使用降低 93%
-- 启动时间减少 80%
-- 信息利用率提升 325%
-
-### 质量门控
-
-PM Agent 具备**元认知能力**：
-- 评估自己的确定性
-- 低确定性时主动请求帮助
-- 明确说明不确定性
-- 必要时请求 Human 介入
-
-### 模板化团队
-
-提供 5 种 Team 模板：
+`agents/_templates/` 提供可复用的 Agent 模板：
 
 | 模板 | 职责 | 适用场景 |
 |------|------|----------|
@@ -225,281 +211,155 @@ PM Agent 具备**元认知能力**：
 | Integration Team | 系统集成 | 需要集成的项目 |
 | Research Team | 理论研究 | 研究型项目 |
 
----
-
-## 📚 文档导航
-
-### 核心文档
+### 开发工具文档
 
 | 文档 | 路径 | 说明 |
 |------|------|------|
-| 初始化指南 | `agents/pm/INIT.md` | 首次启动必读 ⭐ |
-| 启动文档 | `agents/pm/CATCH_UP.md` | 当前状态 |
-| 核心指南 | `agents/pm/ESSENTIALS.md` | 详细工作规范 |
-| 工作流程 | `agents/pm/WORKFLOW.md` | Agent 管理流程 |
+| PM Agent 初始化 | [agents/pm/INIT.md](agents/pm/INIT.md) | 首次启动必读 |
+| PM Agent 状态 | [agents/pm/CATCH_UP.md](agents/pm/CATCH_UP.md) | 当前工作状态 |
+| PM Agent 指南 | [agents/pm/ESSENTIALS.md](agents/pm/ESSENTIALS.md) | 详细工作规范 |
+| 模板使用指南 | [agents/_templates/TEMPLATE-GUIDE.md](agents/_templates/TEMPLATE-GUIDE.md) | Team 模板使用 |
 
-### 模板文档
+---
 
-| 文档 | 路径 | 说明 |
+## 📁 完整目录结构
+
+```
+community-power-assistant/
+│
+├── agents/                           # 开发工具 - Agent 框架
+│   ├── pm/                           # PM Agent
+│   │   ├── AGENTS.md                 # 身份定义
+│   │   ├── CATCH_UP.md               # 状态记忆
+│   │   ├── INIT.md                   # 首次启动指南
+│   │   ├── WORKFLOW.md               # 工作流程
+│   │   ├── ESSENTIALS.md             # 核心指南
+│   │   └── experiences/              # 经验积累
+│   │
+│   └── _templates/                   # Team Agent 模板库
+│       ├── core-team/
+│       ├── ai-team/
+│       ├── test-team/
+│       ├── integration-team/
+│       └── research-team/
+│
+├── framework/                        # 开发工具 - 框架支持
+│   ├── memory-index.yaml             # 记忆索引
+│   └── skills/                       # 通用技能
+│       ├── workflow/
+│       └── decision-support/
+│
+├── knowledge-base/                   # 🎯 应用项目
+│   └── field-info-agent/             # Field Info Agent
+│       ├── README.md                 # 项目总览 ⭐
+│       ├── OPENCLAW-SKILLS-STANDARD.md  # Skills 开发标准 ⭐
+│       ├── IMPLEMENTATION-SUMMARY.md    # 实现总结 ⭐
+│       │
+│       ├── agents/field-collector/   # Agent 实现
+│       │   ├── AGENTS.md             # Agent 角色定义
+│       │   ├── openclaw.config.yaml  # OpenClaw 配置
+│       │   └── workspace/
+│       │       ├── skills/           # Skills 定义
+│       │       ├── database/         # 数据库 Schema
+│       │       └── docker-compose.yml
+│       │
+│       ├── design/                   # 设计文档
+│       │   ├── detailed-design-v2.md
+│       │   ├── storage-change-v2.2.md
+│       │   └── openclaw-feasibility-verification.md
+│       │
+│       └── analysis/                 # 分析文档
+│           └── technical-feasibility-analysis.md
+│
+├── tasks/                            # 任务文件
+├── reports/                          # 报告文件
+├── status/                           # 状态跟踪
+├── archive/                          # 实践经验库
+├── logs/                             # 日志文件
+│
+├── start-pm.sh                       # PM Agent 启动脚本
+├── start-pm.bat
+├── opencode.json                     # OpenCode 配置
+└── README.md                         # 本文件
+```
+
+---
+
+## 🚀 快速开始
+
+### 作为应用项目使用
+
+1. **阅读项目文档**
+   ```bash
+   # 了解 Field Info Agent 项目
+   cat knowledge-base/field-info-agent/README.md
+   ```
+
+2. **查看设计文档**
+   ```bash
+   # 技术方案
+   cat knowledge-base/field-info-agent/design/detailed-design-v2.md
+   
+   # 开发规范
+   cat knowledge-base/field-info-agent/OPENCLAW-SKILLS-STANDARD.md
+   ```
+
+3. **开始开发**
+   ```bash
+   # 查看任务清单
+   cat tasks/TASK-LIST-field-info-agent.md
+   ```
+
+### 作为开发工具使用
+
+1. **启动 PM Agent**
+   ```bash
+   ./start-pm.sh
+   ```
+
+2. **PM Agent 自动引导后续工作**
+
+---
+
+## 📊 项目状态
+
+| 项目 | 状态 | 说明 |
 |------|------|------|
-| 模板指南 | `agents/_templates/TEMPLATE-GUIDE.md` | 如何使用模板 ⭐ |
-| Core Team | `agents/_templates/core-team/` | 数据处理模板 |
-| AI Team | `agents/_templates/ai-team/` | AI 模板 |
-| Test Team | `agents/_templates/test-team/` | 测试模板 |
-| Integration Team | `agents/_templates/integration-team/` | 集成模板 |
-| Research Team | `agents/_templates/research-team/` | 研究模板 |
-
-### 技能文档
-
-| 文档 | 路径 | 说明 |
-|------|------|------|
-| Git 工作流 | `framework/skills/workflow/git-workflow.md` | 标准 Git 流程 |
-| 代码审查 | `framework/skills/workflow/review-process.md` | Review 标准 |
-| 质量门控 | `framework/skills/decision-support/quality-gate.md` | 质量评估 |
-
-### 实践经验
-
-| 文档 | 路径 | 说明 |
-|------|------|------|
-| 经验库索引 | `archive/README.md` | 实践经验说明 |
-| SG-AgentTeam 经验 | `archive/sg-agentteam-experiences/` | 历史经验参考 |
-| Knowledge-Assistant 经验 | `archive/knowledge-assistant-experiences/` | v1.1实战经验 ⭐ |
-
----
-
-## 🆕 v1.1.0 新特性
-
-### 验证的工作模式
-
-v1.1.0 版本通过 **knowledge-assistant-dev** 项目验证了以下核心工作模式：
-
-#### 1. 并行启动多个Agent
-
-**场景**: 多个独立任务需要并行执行
-
-**方法**:
-```bash
-# 并行启动多个Agent
-opencode run --agent core "任务A..." > logs/core.log 2>&1 &
-opencode run --agent ai "任务B..." > logs/ai.log 2>&1 &
-opencode run --agent integration "任务C..." > logs/integration.log 2>&1 &
-```
-
-**效果**:
-- ✅ 开发周期从6周缩短到3天
-- ✅ PM Team工作量降低80%
-- ✅ 充分利用并行能力
-
-详见: [并行启动Agent经验](agents/pm/experiences/parallel-agent-launch-20260308.md)
-
-#### 2. 任务文件 + 报告文件机制
-
-**场景**: PM Agent与Team Agent的信息交换
-
-**方法**:
-```
-tasks/
-  ├── core-task.md      # PM Agent创建
-  ├── ai-task.md
-  └── integration-task.md
-
-reports/
-  ├── core-report.md    # Team Agent生成
-  ├── ai-report.md
-  └── integration-report.md
-```
-
-**优势**:
-- 任务描述完整，避免理解偏差
-- 报告格式统一，便于汇总
-- 历史记录可追溯
-
-#### 3. 被动接收报告模式
-
-**原则**:
-- ❌ 不主动轮询Agent进度
-- ✅ 等待Agent生成报告文件
-- ✅ 用户询问时检查reports/目录
-
-**效果**: 减少PM Team干预，Agent自主完成
-
-#### 4. 权限配置最佳实践
-
-**问题**: 非交互模式下权限被自动拒绝
-
-**解决**:
-```json
-{
-  "agent": {
-    "core": {
-      "permission": {
-        "edit": "allow"  // 必须为allow
-      }
-    }
-  }
-}
-```
-
-### 实战数据
-
-| 指标 | 目标 | 实际 | 提升 |
-|------|------|------|------|
-| 开发周期 | 6周 | 3天 | 93% ⬇️ |
-| 测试覆盖率 | >80% | 91.7% | 15% ⬆️ |
-| PM工作量 | 高 | 低 | 80% ⬇️ |
-| 并行任务数 | 1 | 3-5 | 300% ⬆️ |
-
-### 完整案例
-
-**项目**: [Knowledge Assistant](https://github.com/Sonnet0524/knowledge-assistant)  
-**版本**: v1.1.0 → v1.2.0  
-**详情**: [archive/knowledge-assistant-experiences/](archive/knowledge-assistant-experiences/)
-
----
-
-## 🛠️ 创建新 Team
-
-### 快速流程
-
-```bash
-# 1. 选择合适的模板
-cp -r agents/_templates/core-team agents/my-team
-
-# 2. 定制 AGENTS.md
-vim agents/my-team/AGENTS.md
-# - 修改 description
-# - 调整模块边界
-# - 更新行为准则
-
-# 3. 创建 CATCH_UP.md
-touch agents/my-team/CATCH_UP.md
-
-# 4. 配置 memory-index.yaml
-vim framework/memory-index.yaml
-# 添加 my-team 配置
-
-# 5. 注册到 opencode.json
-vim opencode.json
-# 添加 my-team agent
-
-# 6. 创建启动脚本
-cp start-pm.sh start-my-team.sh
-vim start-my-team.sh
-# 修改 agent 名称
-
-# 7. 更新项目文档
-vim agents/pm/CATCH_UP.md
-# 在 Team Structure 中添加 my-team
-```
-
-详细指南：[TEMPLATE-GUIDE.md](agents/_templates/TEMPLATE-GUIDE.md)
-
----
-
-## 🎓 最佳实践
-
-### DO ✅
-
-- ✅ 首次启动阅读 `INIT.md`
-- ✅ 每次启动阅读 `CATCH_UP.md`
-- ✅ 主动启动 Agent，不等待
-- ✅ 不轮询 Agent 状态
-- ✅ 及时更新文档
-- ✅ 沉淀经验到 `experiences/`
-- ✅ 关键决策前请求 Human 确认
-
-### DON'T ❌
-
-- ❌ 跳过初始化流程
-- ❌ 主动检查 Agent 进度
-- ❌ 直接修改业务代码
-- ❌ 忽略质量门控
-- ❌ 不做经验总结
-
----
-
-## 🔄 工作流程示例
-
-### 场景：新项目启动
-
-```
-Day 1: 初始化
-├── Human 启动 PM Agent
-├── PM Agent 读取 INIT.md
-├── PM Agent 询问项目目标
-├── Human: "开发知识管理系统"
-└── PM Agent 设计 Team 结构
-
-Day 2: 团队组建
-├── PM Agent 创建 Core Team（数据处理）
-├── PM Agent 创建 AI Team（语义搜索）
-├── PM Agent 创建 Test Team（质量保证）
-└── 更新所有配置和文档
-
-Day 3: 开始开发
-├── PM Agent 分配任务给 Core Team
-├── Core Team 开发数据模块
-├── PM Agent 分配任务给 AI Team
-└── AI Team 开发搜索模块
-
-Day 4: 验收和继续
-├── PM Agent 验收 Core Team 成果
-├── PM Agent 验收 AI Team 成果
-├── PM Agent 分配集成任务
-└── 继续迭代...
-```
-
----
-
-## 📊 对比：传统 vs PM Agent
-
-| 维度 | 传统开发 | PM Agent |
-|------|---------|----------|
-| 项目管理 | 需要专职 PM | Agent 自动管理 |
-| 任务分配 | 人工分配 | 自动分配和跟踪 |
-| 进度跟踪 | 会议/邮件 | 文档化自动跟踪 |
-| 知识沉淀 | 靠个人记录 | 系统化经验库 |
-| 团队协作 | 人工协调 | Agent 自动协调 |
-| 可扩展性 | 受限于人力 | 动态创建 Team |
+| Field Info Agent 设计 | ✅ 完成 | 详细设计 v2.1, v2.2 |
+| OpenClaw 实现结构 | ✅ 完成 | Agent + Skills + 配置 |
+| Skills 格式标准化 | ✅ 完成 | 符合 OpenClaw 官方规范 |
+| 开发任务规划 | ✅ 完成 | TASK-001 ~ TASK-007 |
+| 基础环境搭建 | ⏳ 待开始 | TASK-001 |
+| 企业微信集成 | ⏳ 待开始 | TASK-003 |
+| AI 照片分析 | ⏳ 待开始 | TASK-004 |
 
 ---
 
 ## 🤝 贡献
 
 欢迎贡献：
-- 新的 Team 模板
-- 最佳实践文档
-- 经验总结
+- OpenClaw Skills 最佳实践
+- Agent Team 模板
+- 设计文档改进
 - Bug 修复
 
 ---
 
 ## 📄 许可证
 
-AGPL v3 License - 详见 LICENSE 文件
+AGPL v3 License
 
 ---
 
 ## 🔗 相关资源
 
-- [SG-AgentTeam](https://github.com/Sonnet0524/SG-AgentTeam) - 原始项目
+- [OpenClaw 官方文档](https://docs.openclaw.ai)
+- [OpenClaw Skills 规范](https://docs.openclaw.ai/tools/skills)
+- [AgentSkills 规范](https://agentskills.io)
 - [OpenCode](https://opencode.ai) - Agent 执行框架
-- [Agent Team 设计方法论](agents/_templates/TEMPLATE-GUIDE.md)
 
 ---
 
 **维护者**: Sonnet.G  
 **创建日期**: 2026-03-08  
-**版本**: 1.0.0
-
----
-
-## 🚀 开始使用
-
-准备好开始了吗？
-
-```bash
-./start-pm.sh
-```
-
-PM Agent 会引导你完成初始化！
+**最后更新**: 2026-03-18

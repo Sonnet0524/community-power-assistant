@@ -1,9 +1,11 @@
 # OpenClaw Configuration for Field Info Collector Agent
 # 现场信息收集智能体 - OpenClaw配置文件
+# 
+# 技术栈：OpenClaw + 企业微信长连接 + KIMI 2.5多模态 + PostgreSQL + MinIO
 
 name: FieldInfoCollector
 version: 1.0.0
-description: 基于OpenClaw的现场信息收集智能体，支持企业微信交互、KIMI多模态分析、文档自动生成
+description: 基于OpenClaw的现场信息收集智能体，支持企业微信长连接交互、KIMI多模态分析、文档自动生成
 
 # ============================================
 # 渠道配置 (Channels)
@@ -12,24 +14,61 @@ channels:
   wecom:
     enabled: true
     provider: wecom-openclaw-plugin
+    
+    # ====================
+    # 长连接模式配置 (WebSocket) ⭐ 推荐使用
+    # ====================
+    connection_mode: "websocket"   # websocket | callback
+    websocket_url: "wss://openws.work.weixin.qq.com"
+    
+    # 长连接身份凭证
+    bot_id: "${WECOM_BOT_ID}"      # 智能机器人BotID
+    secret: "${WECOM_SECRET}"      # 长连接专用Secret
+    
+    # 心跳配置
+    heartbeat:
+      enabled: true
+      interval: 30                  # 心跳间隔(秒)，官方建议30秒
+      timeout: 10                   # 心跳响应超时(秒)
+      max_retries: 3                # 心跳失败最大重试次数
+    
+    # 重连配置
+    reconnection:
+      enabled: true
+      max_attempts: 10              # 最大重连次数
+      base_delay: 1000              # 初始重连延迟(ms)
+      max_delay: 30000              # 最大重连延迟(ms)
+      exponential_backoff: true     # 指数退避
+    
+    # ====================
+    # 回调模式配置 (Webhook) - 备选方案
+    # ====================
+    # 仅在 connection_mode=callback 时生效
     corp_id: "${WECOM_CORP_ID}"
     agent_id: "${WECOM_AGENT_ID}"
-    secret: "${WECOM_SECRET}"
     token: "${WECOM_TOKEN}"
     encoding_aes_key: "${WECOM_ENCODING_AES_KEY}"
     callback_url: "${WECOM_CALLBACK_URL}"
     
-    # 支持的消息类型
+    # ====================
+    # 消息处理配置
+    # ====================
     supported_message_types:
       - text        # 文字消息
       - image       # 图片消息 ⭐
       - location    # 位置消息 ⭐
     
-    # 消息处理配置
     message_handling:
-      max_image_size: 2097152      # 2MB (企业微信限制)
-      image_quality: "high"         # 图片质量
-      download_timeout: 30          # 下载超时(秒)
+      max_image_size: 2097152       # 2MB (企业微信限制)
+      image_quality: "high"          # 图片质量
+      download_timeout: 30           # 下载超时(秒)
+      
+      # 流式消息配置（长连接支持）
+      streaming:
+        enabled: true                # 启用流式输出（打字机效果）
+        chunk_size: 100              # 每块字符数
+        chunk_delay: 100             # 块间延迟(ms)
+        max_streaming_time: 60000    # 最大流式时间(ms)
 
 # ============================================
 # 技能配置 (Skills)

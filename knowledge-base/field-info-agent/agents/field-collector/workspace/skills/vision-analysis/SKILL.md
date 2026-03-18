@@ -1,259 +1,202 @@
 ---
 name: vision-analysis
-description: |
-  AI照片智能分析技能
-  
-  使用OpenClaw配置的多模态模型（KIMI 2.5）对现场照片进行智能分析。
-  支持单图分析和批量分析，识别电力设备、检测缺陷、评估状态。
-  
-  核心能力：
-  - 设备类型识别（变压器、高压柜、低压柜、电缆等）
-  - 缺陷检测（漏油、锈蚀、松动、过热等）
-  - 状态评估（正常、注意、异常、危险）
-  - 安全隐患识别
-  
-  实现方式：直接调用OpenClaw LLM多模态能力，无需额外Tool封装
-
+description: AI照片智能分析技能，使用OpenClaw多模态能力对电力设备照片进行智能分析
 metadata:
-  openclaw:
-    emoji: 🔍
-    category: ai
-    requires:
-      tools:
-        - postgres-query    # 仅用于保存分析结果
-        - minio-storage     # 仅用于照片存储
-      channels:
-        - wecom
-    triggers:
-      - type: message
-        condition: image_received
-      - type: command
-        condition: analyze_photos
+  {
+    "openclaw":
+      {
+        "emoji": "🔍",
+        "requires": { "env": ["KIMI_API_KEY"], "config": ["llm.kimi.vision_analysis.enabled"] }
+      }
+  }
 ---
 
-# Vision Analysis - AI照片智能分析技能（简化版）
+# Vision Analysis - AI照片智能分析技能
 
 ## 概述
 
-本技能利用OpenClaw的多模态能力，直接调用配置的KIMI 2.5模型对现场照片进行分析。无需开发额外的Tool，只需在Skill中定义好Prompt模板和分析逻辑。
+本技能利用 OpenClaw 的多模态能力，直接调用配置的 KIMI 2.5 模型对现场照片进行分析。
 
-## 核心设计
+**核心能力**：
+- 设备类型识别（变压器、高压柜、低压柜、电缆等）
+- 缺陷检测（漏油、锈蚀、松动、过热等）
+- 状态评估（正常、注意、异常、危险）
+- 安全隐患识别
 
-### 利用OpenClaw原生能力
+## 使用场景
 
-```
-用户发送图片 → OpenClaw Channel接收 → OpenClaw LLM多模态分析 → Skill解析结果 → 保存到DB
-```
+### 触发条件（在 openclaw.config.yaml 中配置）
 
-**关键点**：OpenClaw会自动将图片传给配置的多模态模型，Skill只需要：
-1. 提供分析Prompt
-2. 接收并解析JSON结果
-3. 保存到PostgreSQL
-4. 返回给用户
+1. **接收到图片消息** - 自动触发分析
+2. **用户命令** - "分析照片"、"批量分析"
 
-## 分析Prompt模板
-
-### 单图分析Prompt（配置在openclaw.config.yaml）
+### 工作流程
 
 ```
-你是电力设备检测专家。请分析用户上传的现场照片。
+用户发送图片 
+  → OpenClaw Channel 接收 
+  → LLM 多模态自动分析（使用配置的 Prompt）
+  → Skill 解析 JSON 结果
+  → 保存到 PostgreSQL
+  → 返回分析摘要给用户
+```
 
-分析要求：
-1. 识别设备类型（变压器/高压柜/低压柜/电缆/计量装置/其他）
-2. 评估整体状态（正常/注意/异常/危险）
-3. 检查以下缺陷：
-   - 外观：锈蚀、变形、破损、油污
-   - 连接：松动、脱落、接触不良
-   - 绝缘：老化、裂纹、放电痕迹
-   - 运行：漏油、过热、异响
-   - 标识：缺失、模糊、错误
-4. 识别安全隐患
-5. 给出处理建议
+## Prompt 模板
 
-必须按JSON格式输出：
+### 单图分析 Prompt
+
+配置位置：`openclaw.config.yaml` → `llm.kimi.vision_analysis.prompts.single_image`
+
+```
+请仔细分析这张电力设备照片，按以下 JSON 格式返回分析结果：
+
 {
-  "device_type": "设备类型",
-  "device_subtype": "子类型",
+  "device_type": "设备类型（变压器/高压柜/低压柜/电缆/计量装置/其他）",
+  "device_subtype": "设备子类型（如：箱式变压器、干式变压器等）",
   "status": "normal|attention|abnormal|danger",
   "confidence": 0-1,
   "findings": [
     {
-      "category": "缺陷类别",
-      "description": "具体描述",
-      "severity": "low|medium|high|critical"
+      "category": "appearance|connection|insulation|operation|label|environment",
+      "description": "缺陷描述",
+      "severity": "low|medium|high|critical",
+      "location": "位置描述"
     }
   ],
-  "safety_issues": ["隐患1", "隐患2"],
+  "safety_issues": ["安全隐患1", "安全隐患2"],
   "recommendations": ["建议1", "建议2"],
-  "summary": "一句话摘要"
+  "summary": "一句话分析摘要"
 }
 ```
 
-### 批量分析Prompt
+### 批量分析 Prompt
+
+配置位置：`openclaw.config.yaml` → `llm.kimi.vision_analysis.prompts.batch_images`
 
 ```
-你正在分析同一配电房的多张照片。请批量分析并给出整体评估。
+你正在分析同一配电房的 {{photo_count}} 张照片。请进行批量分析：
 
-照片数量: {{photo_count}}
-社区: {{community_name}}
+分析要求：
+1. 分别识别每张照片中的设备
+2. 评估每台设备的状态
+3. 发现设备间的关联问题
+4. 识别共性问题（环境、标识等）
+5. 给出整体评估和优先处理建议
 
-要求：
-1. 分别分析每张照片
-2. 识别设备间的关联问题
-3. 发现共性问题
-4. 给出整体评估和优先处理建议
-
-输出JSON格式：
+按 JSON 格式返回：
 {
-  "overall_status": "normal|attention|abnormal|danger",
-  "total_devices": 数量,
-  "issues_found": 问题数,
-  "critical_issues": 严重问题数,
-  "per_image": [单图分析结果],
-  "common_issues": ["共性问题"],
-  "priority_actions": ["优先处理1", "优先处理2"],
+  "overall_assessment": {
+    "facility_type": "配电房类型",
+    "overall_status": "normal|attention|abnormal|danger",
+    "total_devices": 数量,
+    "issues_found": 问题数量,
+    "critical_issues": 严重问题数量,
+    "score": 0-100
+  },
+  "per_image_analysis": [
+    {
+      "image_index": 0,
+      "device_type": "设备类型",
+      "status": "状态",
+      "findings": [],
+      "recommendations": []
+    }
+  ],
+  "common_issues": ["共性问题1"],
+  "priority_actions": ["优先处理1"],
   "summary": "整体评估摘要"
 }
 ```
 
 ## 实现逻辑
 
-### 1. 接收图片并分析（单图）
+### 1. 单图分析处理
 
 ```typescript
-// Skill处理函数
+// Skill 处理函数
 async function handleImage(message: ImageMessage, context: Context) {
-  // OpenClaw已经自动将图片传给LLM分析
-  // 我们只需要从context中获取分析结果
-  const analysisResult = context.llmResponse
+  // OpenClaw 已经自动将图片传给 LLM 分析
+  // 从 context 中获取分析结果
+  const analysisResult = context.llmResponse;
   
-  // 解析JSON
-  const result = JSON.parse(analysisResult.content)
+  // 解析 JSON
+  const result = JSON.parse(analysisResult.content);
   
-  // 保存到数据库
-  await saveAnalysisResult({
-    sessionId: context.sessionId,
-    imageUrl: message.picUrl,
-    result: result,
-    analyzedAt: new Date()
-  })
+  // 保存到数据库（使用 postgres-query 工具）
+  await context.tools['postgres-query'].execute({
+    query: `
+      INSERT INTO photo_analysis (
+        session_id, photo_url, result,
+        device_type, status, confidence, has_issues, issue_count
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    `,
+    params: [
+      context.sessionId,
+      message.picUrl,
+      JSON.stringify(result),
+      result.device_type,
+      result.status,
+      result.confidence,
+      result.findings?.length > 0,
+      result.findings?.length || 0
+    ]
+  });
   
   // 返回给用户
-  return formatAnalysisReport(result)
+  return formatAnalysisReport(result);
 }
 ```
 
-### 2. 批量分析实现
+### 2. 批量分析处理
 
 ```typescript
-async function handleBatchAnalysis(sessionId: string) {
-  const session = await getSession(sessionId)
-  const photos = session.collectedData.photos
+async function handleBatchAnalysis(sessionId: string, context: Context) {
+  const session = await getSession(sessionId);
+  const photos = session.collectedData.photos;
   
-  if (photos.length === 0) return
+  if (photos.length === 0) {
+    return "没有待分析的照片";
+  }
   
   // 发送进度通知
-  await sendMessage(`🔍 正在分析${photos.length}张照片...`)
+  await context.send(`🔍 正在分析 ${photos.length} 张照片...`);
   
-  // OpenClaw支持多图输入，直接批量分析
-  // 如果照片太多，分批处理
-  const batchSize = 10  // KIMI支持一次10张
+  // 分批处理（每批 10 张）
+  const batchSize = 10;
   
   for (let i = 0; i < photos.length; i += batchSize) {
-    const batch = photos.slice(i, i + batchSize)
+    const batch = photos.slice(i, i + batchSize);
     
-    // 调用LLM批量分析
+    // 调用 LLM 批量分析（OpenClaw 自动处理多图输入）
     const result = await context.llm.chat({
       messages: [{
         role: 'user',
         content: [
           { type: 'text', text: BATCH_PROMPT },
-          ...batch.map(p => ({ type: 'image_url', image_url: { url: p.url } }))
+          ...batch.map(p => ({ 
+            type: 'image_url', 
+            image_url: { url: p.url } 
+          }))
         ]
       }]
-    })
+    });
     
     // 解析并保存
-    const analysis = JSON.parse(result.content)
-    await saveBatchResult(sessionId, analysis)
+    const analysis = JSON.parse(result.content);
+    await saveBatchResult(sessionId, analysis);
     
     // 发送进度
     if (photos.length > batchSize) {
-      await sendMessage(`✓ 已完成 ${Math.min(i + batchSize, photos.length)}/${photos.length}`)
+      await context.send(`✓ 已完成 ${Math.min(i + batchSize, photos.length)}/${photos.length}`);
     }
   }
   
   // 生成最终报告
-  const finalReport = await generateAnalysisReport(sessionId)
-  await sendMessage(finalReport)
+  return generateAnalysisReport(sessionId);
 }
 ```
 
-## 数据存储
-
-### 分析结果表（PostgreSQL）
-
-```sql
--- 照片分析结果表
-CREATE TABLE photo_analysis (
-  analysis_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  session_id UUID NOT NULL,
-  photo_url VARCHAR(500) NOT NULL,
-  photo_hash VARCHAR(64),           -- 图片哈希，用于去重
-  
-  -- 分析结果（JSON存储）
-  result JSONB NOT NULL,
-  
-  -- 关键字段（冗余存储便于查询）
-  device_type VARCHAR(50),
-  status VARCHAR(20),               -- normal/attention/abnormal/danger
-  confidence DECIMAL(3,2),
-  has_issues BOOLEAN DEFAULT false,
-  issue_count INTEGER DEFAULT 0,
-  
-  -- 元数据
-  analyzed_at TIMESTAMP DEFAULT NOW(),
-  model_version VARCHAR(20),        -- AI模型版本
-  
-  FOREIGN KEY (session_id) REFERENCES field_sessions(session_id)
-);
-
--- 索引
-CREATE INDEX idx_analysis_session ON photo_analysis(session_id);
-CREATE INDEX idx_analysis_status ON photo_analysis(status);
-CREATE INDEX idx_analysis_device ON photo_analysis(device_type);
-```
-
-### 保存分析结果
-
-```typescript
-async function saveAnalysisResult(data: AnalysisData) {
-  const query = `
-    INSERT INTO photo_analysis (
-      session_id, photo_url, photo_hash, result,
-      device_type, status, confidence, has_issues, issue_count
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-    RETURNING analysis_id
-  `
-  
-  const result = data.result
-  const hasIssues = result.findings && result.findings.length > 0
-  
-  await postgres.query(query, [
-    data.sessionId,
-    data.photoUrl,
-    data.photoHash,
-    JSON.stringify(result),
-    result.device_type,
-    result.status,
-    result.confidence,
-    hasIssues,
-    result.findings?.length || 0
-  ])
-}
-```
-
-## 用户交互
+## 用户交互示例
 
 ### 单图分析回复
 
@@ -276,13 +219,13 @@ async function saveAnalysisResult(data: AnalysisData) {
 ### 批量分析完成
 
 ```
-✅ 照片分析完成（共8张）
+✅ 照片分析完成（共 8 张）
 
 📊 整体评估：
-• 配电房：阳光社区#1配电房
-• 设备数量：6台
+• 配电房：阳光社区#1 配电房
+• 设备数量：6 台
 • 整体状态：🟡 注意
-• 发现问题：2处
+• 发现问题：2 处
 
 📋 设备清单：
 1. 🟡 变压器 - 注意（油位偏低）
@@ -298,64 +241,115 @@ async function saveAnalysisResult(data: AnalysisData) {
 📄 详细报告已生成
 ```
 
-## 与OpenClaw集成配置
+## 配置说明
 
-### 在openclaw.config.yaml中配置
+### 在 openclaw.config.yaml 中配置
 
 ```yaml
+# LLM 配置（定义 Prompt 模板）
 llm:
-  default_provider: kimi
-  
   kimi:
-    api_key: "${KIMI_API_KEY}"
-    base_url: "https://api.moonshot.cn/v1"
-    model: "kimi-k2.5"
-    temperature: 0.3
-    max_tokens: 4096
-    
-    # 多模态分析专用配置
     vision_analysis:
+      enabled: true
       system_prompt: |
-        你是电力设备检测专家。用户会发送电力设备照片，请进行专业分析。
-        必须按JSON格式返回分析结果。
-      
-      # 分析提示词模板
+        你是电力设备检测专家...
       prompts:
         single_image: |
-          请分析这张电力设备照片，按JSON格式返回：
-          {
-            "device_type": "设备类型",
-            "status": "normal|attention|abnormal|danger",
-            "findings": [...],
-            "recommendations": [...],
-            "summary": "摘要"
-          }
-        
+          请分析这张电力设备照片...
         batch_images: |
-          请批量分析这组{{count}}张配电房照片，给出整体评估...
+          请批量分析这组照片...
 
+# Skill 配置（定义触发器和运行时参数）
 skills:
   vision_analysis:
     enabled: true
     triggers:
-      - message_type: image
+      - type: message_type
+        value: image
+      - type: command
+        pattern: "分析.*照片|批量分析"
     config:
       auto_analyze: true
+      batch_size: 10
+      async_mode: true
+      timeout: 300
       save_results: true
       confidence_threshold: 0.7
+
+# Tool 配置（数据库连接）
+tools:
+  postgres_query:
+    enabled: true
+    config:
+      host: "${POSTGRES_HOST}"
+      # ...
 ```
 
-## 优势总结
+## 错误处理
 
-✅ **简化实现**：无需开发TypeScript Tool，直接利用OpenClaw能力  
-✅ **维护简单**：模型升级自动受益  
-✅ **配置灵活**：Prompt可在配置文件中调整  
-✅ **性能保障**：利用OpenClaw的异步处理能力  
-✅ **成本优化**：减少一层封装，降低复杂度  
+### 分析失败
+
+```typescript
+async function handleAnalysisError(error: Error, context: Context) {
+  // 记录错误
+  await logError(error);
+  
+  // 降级处理
+  return `⚠️ 照片分析遇到问题：${error.message}
+  
+您可以：
+• 重新发送照片
+• 手动描述设备情况
+• 联系技术支持`;
+}
+```
+
+### 超时处理
+
+```typescript
+const ANALYSIS_TIMEOUT = 300000; // 5 分钟
+
+async function analyzeWithTimeout(photos: Photo[]) {
+  const timeoutPromise = new Promise((_, reject) => {
+    setTimeout(() => reject(new Error('分析超时')), ANALYSIS_TIMEOUT);
+  });
+  
+  try {
+    return await Promise.race([
+      analyzePhotos(photos),
+      timeoutPromise
+    ]);
+  } catch (error) {
+    if (error.message === '分析超时') {
+      // 分批重试
+      return analyzeInBatches(photos, 5); // 更小的批次
+    }
+    throw error;
+  }
+}
+```
+
+## 数据存储
+
+### 数据库表结构
+
+详见 `workspace/database/schema.sql` 中的 `photo_analysis` 和 `batch_analysis` 表。
+
+### 关键字段
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `analysis_id` | UUID | 分析记录 ID |
+| `session_id` | UUID | 关联的工作会话 |
+| `photo_url` | VARCHAR | 照片存储地址 |
+| `result` | JSONB | 完整分析结果 |
+| `device_type` | VARCHAR | 设备类型 |
+| `status` | VARCHAR | 状态评估 |
+| `confidence` | DECIMAL | 置信度 |
 
 ---
 
-**版本**: 1.0.0（简化版）  
+**版本**: 2.0.0  
 **作者**: PM Agent  
-**更新**: 2026-03-18  
-**变更**: 移除独立Tool封装，直接使用OpenClaw多模态能力
+**更新日期**: 2026-03-18  
+**变更**: 修正为 OpenClaw 标准 SKILL.md 格式

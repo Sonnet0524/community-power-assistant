@@ -6,9 +6,9 @@
 
 ## Quick Status
 
-**Last Updated**: 2026-03-18 11:00  
-**Current Phase**: OpenClaw Agent实现结构完成，等待GitHub仓库推送  
-**Status**: 🟡 代码已提交，等待远程仓库配置
+**Last Updated**: 2026-03-18 15:30  
+**Current Phase**: OpenClaw Skills 标准化完成，项目结构重构  
+**Status**: 🟢 Skills 格式已标准化，README 已更新
 
 ---
 
@@ -31,13 +31,49 @@
   - ✅ Docker Compose配置（PostgreSQL + MinIO + Redis）
   - ✅ 环境变量模板（.env.example）
 
+**Recent Completed**:
+- ✅ **OpenClaw Skills 标准化** - 所有 SKILL.md 修正为官方标准格式
+- ✅ **README 重构** - 明确区分开发工具和应用项目
+- ✅ **Skills 开发标准文档** - 创建 `OPENCLAW-SKILLS-STANDARD.md`
+- ✅ **emergency-guide SKILL.md** - 创建应急处理引导技能
+
 **Next Actions**:
-1. ⏳ **阻塞**: GitHub仓库推送失败（仓库不存在）
-   - 方案A: 在GitHub创建仓库后推送
-   - 方案B: 使用其他远程仓库
-2. ⏳ 分配开发团队，启动TASK-001（基础环境搭建）
-3. ⏳ 申请相关API权限（企业微信、KIMI 2.5）
-4. ⏳ 开发团队Review实现结构，开始编码
+1. ⏳ 提交变更到 Git 仓库
+2. ⏳ 分配开发团队，启动 TASK-001（基础环境搭建）
+3. ⏳ 申请相关 API 权限（企业微信、KIMI 2.5）
+4. ⏳ 开发团队 Review 实现结构，开始编码
+
+---
+
+## 📝 本次更新要点 (2026-03-18)
+
+### OpenClaw Skills 标准化
+
+**问题**: 之前创建的 SKILL.md 格式不符合 OpenClaw 官方规范
+
+**修正内容**:
+1. `metadata` 改为单行 JSON 对象格式
+2. 移除 `requires.tools` 和 `requires.channels`（官方不支持）
+3. 移除 `triggers`（应在 openclaw.config.yaml 中配置）
+4. 所有 4 个 Skills 已修正：
+   - `vision-analysis/SKILL.md`
+   - `station-work-guide/SKILL.md`
+   - `doc-generation/SKILL.md`
+   - `emergency-guide/SKILL.md`（新增）
+
+**新增文档**:
+- `knowledge-base/field-info-agent/OPENCLAW-SKILLS-STANDARD.md` - 开发标准
+
+### README 重构
+
+**变更**: 重新组织仓库 README，明确区分：
+- **开发工具部分**: `agents/` 和 `framework/`（Agent 框架）
+- **应用项目部分**: `knowledge-base/field-info-agent/`（Field Info Agent）
+
+**新增内容**:
+- Field Info Agent 项目介绍和技术架构
+- 关键文档导航
+- 项目状态跟踪
 
 ---
 
@@ -126,6 +162,6 @@
 
 ---
 
-**Last Updated**: 2026-03-17 20:00  
-**Git Commit**: d76f526 - "feat: Add Field Info Agent project design documents"  
-**Next Work**: 分配开发团队，启动TASK-001（基础环境搭建）
+**Last Updated**: 2026-03-18 15:30  
+**Key Changes**: OpenClaw Skills 标准化、README 重构  
+**Next Work**: 提交变更、启动 TASK-001
