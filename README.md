@@ -1,44 +1,18 @@
 # Community Power Assistant
 
 > 🏠 小区供电服务智能化解决方案
-> 
-> 包含 **开发工具框架** 和 **Field Info Agent 应用项目**
 
 **版本**: 1.0.0 | **状态**: 开发中 | **更新**: 2026-03-18
 
 ---
 
-## 📋 仓库结构
+## 📋 关于本仓库
 
-本仓库包含两个核心部分：
-
-```
-community-power-assistant/
-│
-├── 📁 agents/                    # 开发工具 - Agent 框架
-│   ├── pm/                       # PM Agent（项目管理）
-│   └── _templates/               # Team Agent 模板库
-│
-├── 📁 framework/                 # 开发工具 - 框架支持
-│   ├── skills/                   # 通用技能
-│   └── memory-index.yaml         # 记忆索引
-│
-├── 📁 knowledge-base/            # 🎯 应用项目 - Field Info Agent
-│   └── field-info-agent/         # 现场信息收集智能体
-│
-├── 📁 tasks/                     # 任务文件
-├── 📁 reports/                   # 报告文件
-└── 📁 status/                    # 状态跟踪
-```
-
-| 部分 | 类型 | 说明 |
-|------|------|------|
-| `agents/`, `framework/` | 开发工具 | 通用的 Agent 开发框架，可复用于其他项目 |
-| `knowledge-base/` | 应用项目 | Field Info Agent 具体业务实现 |
+本仓库是基于 **[sonnet0524/agent-team-template](https://github.com/sonnet0524/agent-team-template)** 框架开发的项目，包含 **Field Info Agent（现场信息收集智能体）** 的完整实现。
 
 ---
 
-## 🎯 应用项目：Field Info Agent
+## 🎯 Field Info Agent
 
 ### 项目简介
 
@@ -154,140 +128,34 @@ Agent: ✅ 已生成工作报告，点击下载...
 
 ---
 
-## 🛠️ 开发工具：Agent 框架
-
-### 什么是 PM Agent？
-
-PM Agent 是本仓库内置的**项目管理智能体**，作为开发工具协调项目开发：
-
-```
-PM Agent (中心协调者)
-    ↓ 创建和管理
-Team Agent → Team Agent → Team Agent (执行者)
-    ↓ 报告
-PM Agent (汇总验收)
-```
-
-**核心能力**：
-- 🎯 项目规划 - 理解项目目标，设计执行方案
-- 👥 团队组建 - 根据需要动态创建 Agent Team
-- 📋 任务管理 - 分配任务、跟踪进度、验收成果
-- 📝 文档管理 - 维护项目文档和知识库
-
-### 如何使用开发工具
-
-#### 1. 启动 PM Agent
-
-```bash
-# 进入项目目录
-cd community-power-assistant
-
-# 启动 PM Agent
-./start-pm.sh
-# Windows: start-pm.bat
-```
-
-#### 2. PM Agent 工作流程
-
-```
-1. 读取 CATCH_UP.md（了解当前状态）
-   ↓
-2. 继续未完成的任务或开始新任务
-   ↓
-3. 通过 task 工具或启动 Team Agent 执行
-   ↓
-4. 验收报告，更新文档
-```
-
-#### 3. Team Agent 模板
-
-`agents/_templates/` 提供可复用的 Agent 模板：
-
-| 模板 | 职责 | 适用场景 |
-|------|------|----------|
-| Core Team | 数据处理、工具开发 | 数据处理项目 |
-| AI Team | 向量嵌入、语义搜索 | AI/ML 项目 |
-| Test Team | 测试、质量保证 | 需要测试的项目 |
-| Integration Team | 系统集成 | 需要集成的项目 |
-| Research Team | 理论研究 | 研究型项目 |
-
-### 开发工具文档
-
-| 文档 | 路径 | 说明 |
-|------|------|------|
-| PM Agent 初始化 | [agents/pm/INIT.md](agents/pm/INIT.md) | 首次启动必读 |
-| PM Agent 状态 | [agents/pm/CATCH_UP.md](agents/pm/CATCH_UP.md) | 当前工作状态 |
-| PM Agent 指南 | [agents/pm/ESSENTIALS.md](agents/pm/ESSENTIALS.md) | 详细工作规范 |
-| 模板使用指南 | [agents/_templates/TEMPLATE-GUIDE.md](agents/_templates/TEMPLATE-GUIDE.md) | Team 模板使用 |
-
----
-
-## 📁 完整目录结构
+## 📁 目录结构
 
 ```
 community-power-assistant/
-│
-├── agents/                           # 开发工具 - Agent 框架
-│   ├── pm/                           # PM Agent
-│   │   ├── AGENTS.md                 # 身份定义
-│   │   ├── CATCH_UP.md               # 状态记忆
-│   │   ├── INIT.md                   # 首次启动指南
-│   │   ├── WORKFLOW.md               # 工作流程
-│   │   ├── ESSENTIALS.md             # 核心指南
-│   │   └── experiences/              # 经验积累
+├── knowledge-base/field-info-agent/  # 🎯 Field Info Agent 项目
+│   ├── README.md                     # 项目总览 ⭐
+│   ├── OPENCLAW-SKILLS-STANDARD.md   # Skills 开发标准 ⭐
+│   ├── IMPLEMENTATION-SUMMARY.md     # 实现总结 ⭐
 │   │
-│   └── _templates/                   # Team Agent 模板库
-│       ├── core-team/
-│       ├── ai-team/
-│       ├── test-team/
-│       ├── integration-team/
-│       └── research-team/
+│   ├── agents/field-collector/       # Agent 实现
+│   │   ├── AGENTS.md                 # Agent 角色定义
+│   │   ├── openclaw.config.yaml      # OpenClaw 配置
+│   │   └── workspace/
+│   │       ├── skills/               # Skills 定义
+│   │       ├── database/             # 数据库 Schema
+│   │       └── docker-compose.yml    # 基础设施编排
+│   │
+│   ├── design/                       # 设计文档
+│   └── analysis/                     # 分析文档
 │
-├── framework/                        # 开发工具 - 框架支持
-│   ├── memory-index.yaml             # 记忆索引
-│   └── skills/                       # 通用技能
-│       ├── workflow/
-│       └── decision-support/
-│
-├── knowledge-base/                   # 🎯 应用项目
-│   └── field-info-agent/             # Field Info Agent
-│       ├── README.md                 # 项目总览 ⭐
-│       ├── OPENCLAW-SKILLS-STANDARD.md  # Skills 开发标准 ⭐
-│       ├── IMPLEMENTATION-SUMMARY.md    # 实现总结 ⭐
-│       │
-│       ├── agents/field-collector/   # Agent 实现
-│       │   ├── AGENTS.md             # Agent 角色定义
-│       │   ├── openclaw.config.yaml  # OpenClaw 配置
-│       │   └── workspace/
-│       │       ├── skills/           # Skills 定义
-│       │       ├── database/         # 数据库 Schema
-│       │       └── docker-compose.yml
-│       │
-│       ├── design/                   # 设计文档
-│       │   ├── detailed-design-v2.md
-│       │   ├── storage-change-v2.2.md
-│       │   └── openclaw-feasibility-verification.md
-│       │
-│       └── analysis/                 # 分析文档
-│           └── technical-feasibility-analysis.md
-│
-├── tasks/                            # 任务文件
-├── reports/                          # 报告文件
-├── status/                           # 状态跟踪
-├── archive/                          # 实践经验库
-├── logs/                             # 日志文件
-│
-├── start-pm.sh                       # PM Agent 启动脚本
-├── start-pm.bat
-├── opencode.json                     # OpenCode 配置
+├── tasks/                            # 开发任务
+├── agents/                           # 开发工具框架
 └── README.md                         # 本文件
 ```
 
 ---
 
 ## 🚀 快速开始
-
-### 作为应用项目使用
 
 1. **阅读项目文档**
    ```bash
@@ -309,15 +177,6 @@ community-power-assistant/
    # 查看任务清单
    cat tasks/TASK-LIST-field-info-agent.md
    ```
-
-### 作为开发工具使用
-
-1. **启动 PM Agent**
-   ```bash
-   ./start-pm.sh
-   ```
-
-2. **PM Agent 自动引导后续工作**
 
 ---
 
@@ -353,10 +212,10 @@ AGPL v3 License
 
 ## 🔗 相关资源
 
+- [agent-team-template](https://github.com/sonnet0524/agent-team-template) - 本项目的开发框架
 - [OpenClaw 官方文档](https://docs.openclaw.ai)
 - [OpenClaw Skills 规范](https://docs.openclaw.ai/tools/skills)
 - [AgentSkills 规范](https://agentskills.io)
-- [OpenCode](https://opencode.ai) - Agent 执行框架
 
 ---
 
