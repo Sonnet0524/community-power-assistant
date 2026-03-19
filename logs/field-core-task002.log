@@ -1,0 +1,81 @@
+[0m
+> field-core · k2p5
+[0m
+我将按照要求开始处理这个任务。首先读取任务文件和启动文档。
+[0m→ [0mRead tasks/TASK-002-postgresql-minio-tool.md
+[0m→ [0mRead agents/field-core/CATCH_UP.md
+我已读取了任务文件和启动文档。现在让我检查当前目录结构，然后按照任务要求开发这三个 Tool。
+[0m✱ [0mGlob "src/**/*"[90m 0 matches[0m
+[0m
+[0m$ [0mfind . -type f -name "*.py" | head -20
+./run_full_proposal.py
+./create_full_proposal.py
+./generate_proposal.py
+./framework/tools/metrics.py
+./framework/tools/__init__.py
+./framework/tools/errors.py
+./framework/tools/base.py
+./framework/skills/file-processing/word-reading/read_docx.py
+./framework/skills/file-processing/excel-reading/read_xls.py
+./framework/skills/file-processing/excel-reading/read_excel.py
+./framework/skills/file-processing/excel-reading/read_et.py
+./framework/skills/file-processing/excel-reading/read_xlsx.py
+./framework/skills/retrieval/baidu-search/baidu_web_search_api.py
+./generate_proposal_with_charts.py
+[0m
+让我先查看 framework/tools/base.py 作为参考：
+[0m→ [0mRead framework/tools/base.py
+[0m→ [0mRead framework/tools/errors.py
+[0m→ [0mRead framework/tools/__init__.py
+现在我开始创建完整的 Tool 实现。首先创建目录结构和所有必要的文件。
+[0m
+[0m# [0mTodos
+[ ] 创建 src/tools 目录结构
+[ ] 开发 Tool 基类 (base.py)
+[ ] 开发 PostgreSQL Tool (postgresql_tool.py)
+[ ] 开发 MinIO Tool (minio_tool.py)
+[ ] 开发 Redis Tool (redis_tool.py)
+[ ] 创建类型定义 (types.py)
+[ ] 创建错误处理 (errors.py)
+[ ] 创建配置文件 (config/tools.yaml, .env.example)
+[ ] 编写单元测试 (覆盖率>90%)
+[ ] 创建使用文档 (docs/tools/README.md)
+[ ] 生成任务报告
+[0m
+[0m$ [0mmkdir -p src/tools tests/tools config docs/tools reports && ls -la src/ tests/ config/ docs/
+config/:
+total 0
+drwxr-xr-x   2 sonnet  staff    64  3月 19 22:33 .
+drwxr-xr-x  36 sonnet  staff  1152  3月 19 22:33 ..
+
+docs/:
+total 0
+drwxr-xr-x   3 sonnet  staff    96  3月 19 22:33 .
+drwxr-xr-x  36 sonnet  staff  1152  3月 19 22:33 ..
+drwxr-xr-x   2 sonnet  staff    64  3月 19 22:33 tools
+
+src/:
+total 0
+drwxr-xr-x   3 sonnet  staff    96  3月 19 22:33 .
+drwxr-xr-x  36 sonnet  staff  1152  3月 19 22:33 ..
+drwxr-xr-x   2 sonnet  staff    64  3月 19 22:33 tools
+
+tests/:
+total 0
+drwxr-xr-x   3 sonnet  staff    96  3月 19 22:33 .
+drwxr-xr-x  36 sonnet  staff  1152  3月 19 22:33 ..
+drwxr-xr-x   2 sonnet  staff    64  3月 19 22:33 tools
+[0m
+目录结构创建成功。现在开始创建各个 Tool 文件。首先创建错误定义和类型定义：
+[0m← [0mWrite src/tools/errors.py
+Wrote file successfully.
+[0m
+[0m← [0mWrite src/tools/types.py
+Wrote file successfully.
+[0m
+现在创建 Tool 基类：
+[0m← [0mWrite src/tools/base.py
+Wrote file successfully.
+[0m
+让我修复 base.py 中的导入顺序问题：
+[0m→ [0mRead src/tools/base.py[90m [limit=30][0m
