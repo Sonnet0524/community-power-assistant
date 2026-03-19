@@ -1,0 +1,183 @@
+# =============================================================================
+# Field Info Agent - Docker Compose 配置
+# =============================================================================
+# 本文件定义了 Field Info Agent 的基础服务架构：
+# - PostgreSQL: 业务数据持久化
+# - MinIO: 本地对象存储（替代 WPS 云文档）
+# - Redis: 缓存和会话管理
+# 
+# 作者: Field Core Team
+# 创建日期: 2026-03-19
+# 版本: 1.0.0
+# =============================================================================
+
+version: '3.8'
+
+# -----------------------------------------------------------------------------
+# 服务定义
+# -----------------------------------------------------------------------------
+services:
+  # ===========================================================================
+  # PostgreSQL 数据库服务
+  # ===========================================================================
+  postgres:
+    image: postgres:14-alpine
+    container_name: field-postgres
+    restart: unless-stopped
+    environment:
+      # 数据库超级用户配置（用于初始化）
+      - POSTGRES_USER=${POSTGRES_USER:-field_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-field_pass}
+      - POSTGRES_DB=${POSTGRES_DB:-field_agent}
+      # 时区配置
+      - TZ=Asia/Shanghai
+      - PGTZ=Asia/Shanghai
+    ports:
+      # 映射主机5432端口到容器5432端口
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      # 数据持久化卷
+      - postgres_data:/var/lib/postgresql/data
+      # 初始化脚本（仅在首次启动时执行）
+      - ./init-scripts:/docker-entrypoint-initdb.d:ro
+    networks:
+      - field-network
+    healthcheck:
+      # 健康检查：尝试连接数据库
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-field_user} -d ${POSTGRES_DB:-field_agent}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  # ===========================================================================
+  # MinIO 对象存储服务
+  # ===========================================================================
+  minio:
+    image: minio/minio:latest
+    container_name: field-minio
+    restart: unless-stopped
+    environment:
+      # MinIO 管理员账号
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER:-minioadmin}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-minioadmin123}
+      # 配置 MinIO 服务器 URL（用于控制台访问）
+      - MINIO_SERVER_URL=http://localhost:${MINIO_PORT:-9000}
+      - MINIO_BROWSER_REDIRECT_URL=http://localhost:${MINIO_CONSOLE_PORT:-9001}
+    ports:
+      # API 端口（S3 兼容接口）
+      - "${MINIO_PORT:-9000}:9000"
+      # 控制台 Web UI 端口
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      # 数据持久化卷
+      - minio_data:/data
+    networks:
+      - field-network
+    # 启动命令：服务器模式 + 控制台
+    command: server /data --console-address ":9001"
+    healthcheck:
+      # 健康检查：检查 API 端口
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  # ===========================================================================
+  # MinIO 初始化服务（创建 bucket 和设置权限）
+  # ===========================================================================
+  minio-init:
+    image: minio/mc:latest
+    container_name: field-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER:-minioadmin}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-minioadmin123}
+      - MINIO_BUCKET=${MINIO_BUCKET:-field-documents}
+    volumes:
+      # 挂载初始化脚本
+      - ./scripts/init-minio.sh:/init-minio.sh:ro
+    networks:
+      - field-network
+    # 执行初始化脚本
+    entrypoint: ["/bin/sh", "/init-minio.sh"]
+    # 初始化完成后自动退出
+    restart: "no"
+
+  # ===========================================================================
+  # Redis 缓存服务
+  # ===========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: field-redis
+    restart: unless-stopped
+    environment:
+      # 时区配置
+      - TZ=Asia/Shanghai
+    ports:
+      # 映射主机6379端口到容器6379端口
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      # 数据持久化卷
+      - redis_data:/data
+    networks:
+      - field-network
+    # 启动命令：启用密码认证 + AOF持久化
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD:-redispass}
+      --appendonly yes
+      --appendfsync everysec
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+    healthcheck:
+      # 健康检查：使用密码认证 ping
+      test: ["CMD-SHELL", "redis-cli -a ${REDIS_PASSWORD:-redispass} ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+# -----------------------------------------------------------------------------
+# 数据卷定义
+# -----------------------------------------------------------------------------
+volumes:
+  # PostgreSQL 数据卷
+  postgres_data:
+    driver: local
+  # MinIO 数据卷
+  minio_data:
+    driver: local
+  # Redis 数据卷
+  redis_data:
+    driver: local
+
+# -----------------------------------------------------------------------------
+# 网络定义
+# -----------------------------------------------------------------------------
+networks:
+  # 内部网络，用于服务间通信
+  field-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

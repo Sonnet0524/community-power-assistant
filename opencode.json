@@ -18,6 +18,40 @@
           "git *": "allow"
         }
       }
+    },
+    "field-core": {
+      "description": "Field Core Team - OpenClaw Skills 和 Tool 开发",
+      "mode": "primary",
+      "prompt": "{file:./agents/field-core/AGENTS.md}",
+      "skills": [
+        "framework/skills/workflow/git-workflow.md",
+        "framework/skills/workflow/review-process.md",
+        "framework/skills/decision-support/quality-gate.md"
+      ],
+      "memory_index": "framework/memory-index.yaml",
+      "permission": {
+        "edit": "allow",
+        "bash": {
+          "git *": "allow"
+        }
+      }
+    },
+    "field-integration": {
+      "description": "Field Integration Team - 企业微信 Channel 和系统集成",
+      "mode": "primary",
+      "prompt": "{file:./agents/field-integration/AGENTS.md}",
+      "skills": [
+        "framework/skills/workflow/git-workflow.md",
+        "framework/skills/workflow/review-process.md",
+        "framework/skills/decision-support/quality-gate.md"
+      ],
+      "memory_index": "framework/memory-index.yaml",
+      "permission": {
+        "edit": "allow",
+        "bash": {
+          "git *": "allow"
+        }
+      }
     }
   }
 }

@@ -5,120 +5,187 @@
 **任务ID**: TASK-001  
 **任务名称**: 基础环境搭建  
 **优先级**: 🔴 最高  
-**预计工期**: 3-4天  
-**依赖**: 无
+**预计工期**: 2-3天  
+**依赖**: 无  
+**负责团队**: Field Core Team
 
 ## 任务目标
 
-搭建Field Info Agent的开发、测试和部署基础环境，包括：
-1. WPS开放平台账号和API权限
-2. 企业微信自建应用
-3. OpenClaw开发环境
-4. 基础部署环境
+搭建 Field Info Agent 的基础开发和运行环境，包括 Docker Compose 配置和本地存储服务（PostgreSQL + MinIO + Redis）。
+
+## 技术栈
+
+- **PostgreSQL 14**: 业务数据持久化（会话、用户信息、分析结果）
+- **MinIO**: 本地对象存储（替代 WPS 云文档，节省成本）
+- **Redis**: 缓存和会话管理
+- **Docker Compose**: 本地开发和部署编排
 
 ## 详细工作内容
 
-### 1. WPS开放平台准备
+### 1. Docker Compose 配置文件
 
 **工作内容**:
-- [ ] 注册WPS开放平台企业开发者账号
-- [ ] 完成企业认证
-- [ ] 创建应用 "供电所信息管理系统"
-- [ ] 申请以下API权限：
-  - ksheet:read（查询多维表格）
-  - ksheet:write（写入多维表格）
-  - doc:read（读取文档）
-  - doc:write（创建/编辑文档）
-  - file:read（读取文件）
-  - file:write（上传文件）
-  - share:create（创建分享链接）
-- [ ] 获取AppID和AppSecret
-- [ ] 测试基础API调用
+- [ ] 创建 `docker-compose.yml`，包含以下服务：
+  - PostgreSQL 14（端口 5432）
+    - 配置数据库: `field_agent`
+    - 创建用户: `field_user`
+    - 设置持久化卷
+  - MinIO（端口 9000 API, 9001 Console）
+    - 创建 bucket: `field-documents`
+    - 配置访问密钥
+  - Redis（端口 6379）
+    - 配置密码认证
+    - 启用持久化
+- [ ] 创建 `.env.example` 环境变量模板
+- [ ] 创建 `docker-compose.override.yml` 用于开发环境
+- [ ] 配置健康检查（healthcheck）
 
 **交付物**:
-- WPS应用配置文档
-- API测试报告
-- App凭证（安全存储）
+- `docker-compose.yml`
+- `.env.example`
+- `docker-compose.override.yml`
 
-### 2. 企业微信应用准备
+### 2. PostgreSQL 初始化
 
 **工作内容**:
-- [ ] 在企业微信管理后台创建自建应用
-  - 应用名称："现场信息采集助手"
-  - 可见范围：供电所全员
-- [ ] 配置应用功能：
-  - 接收消息
-  - 发送应用消息
-  - 上传临时素材
-  - 获取用户信息
-- [ ] 配置回调URL：
-  - URL: `https://your-domain.com/webhook/wecom`
-  - 生成Token和EncodingAESKey
-- [ ] 配置可信域名和IP白名单
-- [ ] 创建群机器人（用于通知推送）
-  - 名称："电小二通知助手"
-  - 获取Webhook URL
+- [ ] 创建数据库初始化脚本 `init-scripts/01-init-db.sql`：
+  - 创建数据库: `field_agent`
+  - 创建用户: `field_user` / `field_pass`
+  - 授权访问
+- [ ] 创建 Schema 初始化脚本 `init-scripts/02-schema.sql`：
+  - 用户表: `users`
+  - 会话表: `sessions`
+  - 任务表: `tasks`
+  - 分析结果表: `analysis_results`
+  - 文档表: `documents`
+  - 索引和约束
+- [ ] 创建 `init-scripts/03-seed.sql` 初始化测试数据
 
 **交付物**:
-- 企业微信应用配置文档
-- 回调配置信息
-- 群机器人Webhook URL
+- `init-scripts/01-init-db.sql`
+- `init-scripts/02-schema.sql`
+- `init-scripts/03-seed.sql`
+- Schema 文档（README）
 
-### 3. OpenClaw开发环境
+### 3. MinIO 初始化
 
 **工作内容**:
-- [ ] 准备开发服务器（本地或云端）
-- [ ] 安装Node.js 18+和npm/yarn
-- [ ] 安装Docker和Docker Compose
-- [ ] 部署Redis服务
-- [ ] 安装OpenClaw CLI工具
-- [ ] 创建项目目录结构
-- [ ] 初始化OpenClaw项目
+- [ ] 创建 MinIO 初始化脚本 `init-minio.sh`：
+  - 等待 MinIO 服务就绪
+  - 创建 bucket: `field-documents`
+  - 设置 bucket 策略（读写权限）
+- [ ] 配置 MinIO 客户端 (mc) 命令
+- [ ] 创建 bucket 目录结构：
+  - `raw-photos/` - 原始照片
+  - `analysis-outputs/` - 分析输出
+  - `generated-docs/` - 生成的文档
 
 **交付物**:
-- 开发环境配置文档
-- 项目基础代码结构
-- 环境验证测试报告
+- `init-minio.sh`
+- Bucket 结构和策略文档
 
-### 4. 基础设施部署
+### 4. 环境验证
 
 **工作内容**:
-- [ ] 准备云服务器（4核8G推荐）
-- [ ] 配置域名和SSL证书
-- [ ] 配置Nginx反向代理
-- [ ] 配置防火墙和安全组
-- [ ] 部署Redis容器
-- [ ] 准备生产环境配置
+- [ ] 创建 `scripts/verify-env.sh` 验证脚本：
+  - 检查所有容器状态
+  - 测试 PostgreSQL 连接
+  - 测试 MinIO 连接
+  - 测试 Redis 连接
+- [ ] 创建 `scripts/start.sh` 启动脚本
+- [ ] 创建 `scripts/stop.sh` 停止脚本
+- [ ] 编写环境搭建 README 文档
 
 **交付物**:
-- 部署架构图
-- 服务器配置文档
-- 网络配置说明
+- `scripts/verify-env.sh`
+- `scripts/start.sh`
+- `scripts/stop.sh`
+- `README.md`
+
+## 目录结构
+
+```
+field-info-agent/
+├── docker-compose.yml
+├── docker-compose.override.yml
+├── .env.example
+├── init-scripts/
+│   ├── 01-init-db.sql
+│   ├── 02-schema.sql
+│   └── 03-seed.sql
+├── scripts/
+│   ├── verify-env.sh
+│   ├── start.sh
+│   └── stop.sh
+└── README.md
+```
 
 ## 验收标准
 
-- [ ] WPS API可正常调用（测试查询、插入操作）
-- [ ] 企业微信应用可接收和发送消息
-- [ ] OpenClaw环境可正常运行
-- [ ] 所有密钥和凭证已安全存储
-- [ ] 开发、测试、生产环境准备就绪
+- [ ] Docker Compose 可正常启动所有服务
+- [ ] PostgreSQL 可连接并执行查询
+- [ ] MinIO 可访问，bucket 已创建
+- [ ] Redis 可连接并读写数据
+- [ ] 验证脚本运行通过
+- [ ] 文档清晰完整
 
-## 注意事项
+## 技术参考
 
-1. **API权限申请可能需要1-3个工作日**，请提前申请
-2. **企业微信回调URL需要公网可访问**，可先使用ngrok临时方案
-3. **所有凭证需安全存储**，使用环境变量或密钥管理服务
-4. **保留所有配置文档**，便于后续维护和交接
+### PostgreSQL Schema 设计
+
+详见: `knowledge-base/field-info-agent/implementation/database/schema.sql`
+
+### 端口配置
+
+| 服务 | 端口 | 说明 |
+|------|------|------|
+| PostgreSQL | 5432 | 数据库访问 |
+| MinIO API | 9000 | 对象存储 API |
+| MinIO Console | 9001 | 管理界面 |
+| Redis | 6379 | 缓存服务 |
+
+### 环境变量模板
+
+```bash
+# Database
+POSTGRES_USER=field_user
+POSTGRES_PASSWORD=field_pass
+POSTGRES_DB=field_agent
+POSTGRES_PORT=5432
+
+# MinIO
+MINIO_ROOT_USER=minioadmin
+MINIO_ROOT_PASSWORD=minioadmin123
+MINIO_BUCKET=field-documents
+MINIO_PORT=9000
+MINIO_CONSOLE_PORT=9001
+
+# Redis
+REDIS_PASSWORD=redispass
+REDIS_PORT=6379
+```
 
 ## 相关文档
 
-- [技术可行性分析](../analysis/technical-feasibility-analysis.md)
-- [详细设计方案](../design/detailed-design-v2.md)
-- WPS开放平台文档：https://open.wps.cn/docs
-- 企业微信开发者文档：https://developer.work.weixin.qq.com/
+- [项目总览](../knowledge-base/field-info-agent/README.md)
+- [详细设计](../knowledge-base/field-info-agent/design/detailed-design-v2.md)
+- [数据库 Schema](../knowledge-base/field-info-agent/implementation/database/schema.sql)
+- [Docker Compose 文档](https://docs.docker.com/compose/)
+
+## 报告要求
+
+完成后请提交报告到: `reports/REPORT-001-environment-setup.md`
+
+报告应包含：
+- 完成情况列表
+- 交付物清单
+- 验证结果
+- 遇到的问题和解决方案
+- 使用说明
 
 ---
 
-**创建时间**: 2026-03-17  
-**负责人**: 待分配  
+**创建时间**: 2026-03-19  
+**更新**: 2026-03-19（更新为本地存储方案）  
+**负责团队**: Field Core Team  
 **状态**: 待开始

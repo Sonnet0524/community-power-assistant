@@ -62,6 +62,32 @@ agents:
       load_once: true
       description: "首次启动指南"
 
+  field-core:
+    identity:
+      path: "agents/field-core/AGENTS.md"
+      priority: P0
+      estimated_tokens: 5000
+      description: "Field Core Team 身份定义"
+    
+    state:
+      path: "agents/field-core/CATCH_UP.md"
+      priority: P0
+      estimated_tokens: 3000
+      description: "Field Core Team 当前状态"
+
+  field-integration:
+    identity:
+      path: "agents/field-integration/AGENTS.md"
+      priority: P0
+      estimated_tokens: 5000
+      description: "Field Integration Team 身份定义"
+    
+    state:
+      path: "agents/field-integration/CATCH_UP.md"
+      priority: P0
+      estimated_tokens: 3000
+      description: "Field Integration Team 当前状态"
+
 # Skills 索引
 skills:
   git-workflow:
