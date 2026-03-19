@@ -1,0 +1,27 @@
+# Field Info Agent - Tools 配置
+
+tools:
+  postgresql:
+    host: "${POSTGRES_HOST}"
+    port: ${POSTGRES_PORT}
+    database: "${POSTGRES_DB}"
+    user: "${POSTGRES_USER}"
+    password: "${POSTGRES_PASSWORD}"
+    pool_size: 10
+    max_overflow: 20
+    pool_timeout: 30
+    
+  minio:
+    endpoint: "${MINIO_ENDPOINT}"
+    access_key: "${MINIO_ACCESS_KEY}"
+    secret_key: "${MINIO_SECRET_KEY}"
+    bucket: "${MINIO_BUCKET}"
+    secure: false
+    region: "us-east-1"
+    
+  redis:
+    host: "${REDIS_HOST}"
+    port: ${REDIS_PORT}
+    password: "${REDIS_PASSWORD}"
+    db: 0
+    decode_responses: true

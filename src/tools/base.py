@@ -28,6 +28,7 @@ from datetime import datetime
 from contextlib import asynccontextmanager
 import functools
 
+from pydantic import BaseModel, Field
 from framework.tools.base import BaseParams, BaseOutput
 from framework.tools.metrics import with_metrics
 
@@ -199,12 +200,12 @@ class BaseTool(ABC):
             self._error_count += 1
             self._logger.error(
                 f"[{self.name}] {operation} failed: {error}",
-                extra={"log_entry": log_entry.dict()}
+                extra={"log_entry": log_entry.model_dump()}
             )
         else:
             self._logger.info(
                 f"[{self.name}] {operation} completed in {duration_ms:.2f}ms",
-                extra={"log_entry": log_entry.dict()}
+                extra={"log_entry": log_entry.model_dump()}
             )
     
     def _handle_error(
@@ -296,5 +297,7 @@ class BaseTool(ABC):
         }
 
 
-# 修复导入
-from pydantic import BaseModel, Field
+__all__ = [
+    "ToolLogEntry",
+    "BaseTool"
+]

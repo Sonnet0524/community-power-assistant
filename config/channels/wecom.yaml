@@ -1,0 +1,90 @@
+# 企业微信Channel配置
+# 
+# 配置说明：
+# - 支持从环境变量读取敏感信息
+# - 支持消息加解密
+# - 支持多种消息类型
+
+channel:
+  name: wecom
+  type: official
+  version: "1.0.0"
+  
+  # 企业微信应用配置
+  corp_id: "${WECOM_CORP_ID}"
+  agent_id: "${WECOM_AGENT_ID}"
+  secret: "${WECOM_SECRET}"
+  
+  # 回调配置
+  callback:
+    url: "${WECOM_CALLBACK_URL}"
+    token: "${WECOM_TOKEN}"
+    encoding_aes_key: "${WECOM_ENCODING_AES_KEY}"
+  
+  # 功能开关
+  features:
+    text_message: true
+    voice_message: true
+    image_message: true
+    file_message: true
+    location_message: true
+  
+  # 消息加解密
+  encryption:
+    enabled: true
+    mode: "aes"  # aes/safe
+  
+  # 存储配置
+  storage:
+    path: "./temp/wecom"
+    max_file_size: 20971520  # 20MB
+    cleanup_interval: 86400  # 24小时
+  
+  # 高级配置
+  advanced:
+    # 消息去重时间窗口（秒）
+    dedup_ttl: 300
+    
+    # 下载超时（秒）
+    download_timeout: 30
+    
+    # 最大重试次数
+    max_retries: 3
+    
+    # 重试延迟（秒）
+    retry_delay: 1.0
+    
+    # 熔断配置
+    circuit_breaker:
+      enabled: true
+      failure_threshold: 5
+      recovery_timeout: 30
+
+# OpenClaw集成配置
+openclaw:
+  # Channel注册名称
+  channel_name: "wecom"
+  
+  # 支持的技能
+  skills:
+    - station_work_guide
+    - vision_analysis
+    - doc_generation
+    - emergency_guide
+  
+  # 消息处理配置
+  message_handling:
+    # 自动分析图片
+    auto_analyze_image: true
+    
+    # 语音识别
+    enable_voice_recognition: true
+    
+    # 位置信息记录
+    enable_location_tracking: true
+    
+    # 流式输出
+    streaming:
+      enabled: true
+      chunk_size: 100
+      chunk_delay: 100
