@@ -168,7 +168,7 @@
                         <!-- Arrow: Channel -> Core -->
                         <line x1="500" y1="225" x2="500" y2="255" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrowGray)"/>
 
-                        <!-- Layer 3: Core (OpenClaw) -->
+                        <!-- Layer 3: Core (OpenClaw) - FIXED -->
                         <text x="50" y="260" class="layer-label">核心引擎层 (OpenClaw)</text>
                         <g transform="translate(200, 270)">
                             <rect x="0" y="0" width="600" height="100" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2"/>
@@ -180,8 +180,8 @@
                                 <text x="60" y="46" text-anchor="middle" font-size="11" fill="#16a34a">网关路由</text>
                             </g>
                             
-                            <!-- Session Manager -->
-                            <g transform="translate="160, 20)">
+                            <!-- Session Manager - FIXED HERE -->
+                            <g transform="translate(160, 20)">
                                 <rect x="0" y="0" width="140" height="60" rx="6" fill="url(#coreGrad)" stroke="#22c55e" stroke-width="2"/>
                                 <text x="70" y="26" text-anchor="middle" font-size="13" fill="#166534" font-weight="600">Session Mgr</text>
                                 <text x="70" y="46" text-anchor="middle" font-size="11" fill="#16a34a">会话状态管理</text>
@@ -267,20 +267,24 @@
 
                         <!-- Side Annotations -->
                         <g transform="translate(820, 270)">
-                            <rect x="0" y="0" width="160" height="210" rx="6" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+                            <rect x="0" y="0" width="160" height="230" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
                             <text x="80" y="25" text-anchor="middle" font-size="12" font-weight="600" fill="#475569">技术栈说明</text>
-                            <line x1="10" y1="35" x2="150" y2="35" stroke="#cbd5e1" stroke-width="1"/>
+                            <line x1="10" y1="35" x2="150" y2="35" stroke="#e2e8f0" stroke-width="1"/>
                             
-                            <text x="10" y="60" font-size="10" fill="#3b82f6" font-weight="600">● 用户层</text>
-                            <text x="10" y="78" font-size="9" fill="#64748b">企业微信 APP</text>
+                            <text x="10" y="55" font-size="10" fill="#3b82f6" font-weight="600">● 用户层</text>
+                            <text x="10" y="72" font-size="9" fill="#64748b">企业微信 APP</text>
                             
-                            <text x="10" y="105" font-size="10" fill="#22c55e" font-weight="600">● 核心引擎</text>
-                            <text x="10" y="123" font-size="9" fill="#64748b">OpenClaw + KIMI</text>
+                            <text x="10" y="95" font-size="10" fill="#f97316" font-weight="600">● 接入层</text>
+                            <text x="10" y="112" font-size="9" fill="#64748b">WeCom Channel</text>
                             
-                            <text x="10" y="150" font-size="10" fill="#8b5cf6" font-weight="600">● 数据存储</text>
-                            <text x="10" y="168" font-size="9" fill="#64748b">PG + MinIO + Redis</text>
+                            <text x="10" y="135" font-size="10" fill="#22c55e" font-weight="600">● 核心引擎</text>
+                            <text x="10" y="152" font-size="9" fill="#64748b">OpenClaw + KIMI</text>
                             
-                            <text x="10" y="195" font-size="10" fill="#f59e0b" font-weight="600">● 4个核心 Skills</text>
+                            <text x="10" y="175" font-size="10" fill="#f59e0b" font-weight="600">● 业务技能层</text>
+                            <text x="10" y="192" font-size="9" fill="#64748b">4个核心 Skills</text>
+                            
+                            <text x="10" y="215" font-size="10" fill="#8b5cf6" font-weight="600">● 数据存储层</text>
+                            <text x="10" y="232" font-size="9" fill="#64748b">PG + MinIO + Redis</text>
                         </g>
                     </svg>
                 </div>
@@ -319,105 +323,178 @@
             </div>
         </section>
 
-        <!-- Business Architecture Section -->
+        <!-- Business Architecture Section - REDESIGNED -->
         <section id="section-business" class="hidden space-y-8">
+            <!-- 1. Business Overview -->
             <div class="glass-panel rounded-2xl p-8">
-                <h2 class="text-2xl font-bold mb-6 section-title">业务架构详解</h2>
-                
-                <!-- Business Flow Diagram -->
-                <div class="architecture-container mb-8">
-                    <h3 class="text-lg font-semibold mb-4 text-gray-700">业务流程全景</h3>
-                    <svg viewBox="0 0 1000 400" class="w-full">
-                        <defs>
-                            <marker id="arrowBiz" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-                                <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
-                            </marker>
-                        </defs>
-                        
-                        <!-- Start -->
-                        <g transform="translate(50, 150)">
-                            <circle cx="30" cy="30" r="25" fill="#dbeafe" stroke="#3b82f6" stroke-width="3"/>
-                            <text x="30" y="35" text-anchor="middle" font-size="12" fill="#1e40af" font-weight="600">开始</text>
-                        </g>
-                        
-                        <!-- Step 1: Init -->
-                        <g transform="translate(120, 130)">
-                            <rect x="0" y="0" width="120" height="60" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
-                            <text x="60" y="25" text-anchor="middle" font-size="12" fill="#92400e" font-weight="600">启动驻点工作</text>
-                            <text x="60" y="45" text-anchor="middle" font-size="10" fill="#b45309">创建Session</text>
-                        </g>
-                        <line x1="105" y1="160" x2="120" y2="160" stroke="#64748b" stroke-width="2" marker-end="url(#arrowBiz)"/>
-                        
-                        <!-- Step 2: Collect -->
-                        <g transform="translate(280, 130)">
-                            <rect x="0" y="0" width="140" height="60" rx="8" fill="#ede9fe" stroke="#8b5cf6" stroke-width="2"/>
-                            <text x="70" y="25" text-anchor="middle" font-size="12" fill="#5b21b6" font-weight="600">现场信息采集</text>
-                            <text x="70" y="45" text-anchor="middle" font-size="10" fill="#7c3aed">照片+文字+位置</text>
-                        </g>
-                        <line x1="240" y1="160" x2="280" y2="160" stroke="#64748b" stroke-width="2" marker-end="url(#arrowBiz)"/>
-                        
-                        <!-- Step 3: AI Analysis -->
-                        <g transform="translate(460, 130)">
-                            <rect x="0" y="0" width="120" height="60" rx="8" fill="#fce7f3" stroke="#ec4899" stroke-width="2"/>
-                            <text x="60" y="25" text-anchor="middle" font-size="12" fill="#9d174d" font-weight="600">AI智能分析</text>
-                            <text x="60" y="45" text-anchor="middle" font-size="10" fill="#db2777">KIMI多模态</text>
-                        </g>
-                        <line x1="420" y1="160" x2="460" y2="160" stroke="#64748b" stroke-width="2" marker-end="url(#arrowBiz)"/>
-                        
-                        <!-- Step 4: Generate -->
-                        <g transform="translate(620, 130)">
-                            <rect x="0" y="0" width="120" height="60" rx="8" fill="#d1fae5" stroke="#10b981" stroke-width="2"/>
-                            <text x="60" y="25" text-anchor="middle" font-size="12" fill="#065f46" font-weight="600">生成工作报告</text>
-                            <text x="60" y="45" text-anchor="middle" font-size="10" fill="#059669">Word文档</text>
-                        </g>
-                        <line x1="580" y1="160" x2="620" y2="160" stroke="#64748b" stroke-width="2" marker-end="url(#arrowBiz)"/>
-                        
-                        <!-- Step 5: Archive -->
-                        <g transform="translate(780, 130)">
-                            <rect x="0" y="0" width="120" height="60" rx="8" fill="#e0f2fe" stroke="#0ea5e9" stroke-width="2"/>
-                            <text x="60" y="25" text-anchor="middle" font-size="12" fill="#0369a1" font-weight="600">归档知识库</text>
-                            <text x="60" y="45" text-anchor="middle" font-size="10" fill="#0284c7">更新社区信息</text>
-                        </g>
-                        <line x1="740" y1="160" x2="780" y2="160" stroke="#64748b" stroke-width="2" marker-end="url(#arrowBiz)"/>
-                        
-                        <!-- End -->
-                        <g transform="translate(930, 150)">
-                            <circle cx="30" cy="30" r="25" fill="#dcfce7" stroke="#22c55e" stroke-width="3"/>
-                            <text x="30" y="35" text-anchor="middle" font-size="12" fill="#166534" font-weight="600">结束</text>
-                        </g>
-                        <line x1="900" y1="160" x2="930" y2="160" stroke="#64748b" stroke-width="2" marker-end="url(#arrowBiz)"/>
-                        
-                        <!-- Sub-process: Collection Detail -->
-                        <g transform="translate(280, 220)">
-                            <rect x="0" y="0" width="450" height="100" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="5,5"/>
-                            <text x="225" y="25" text-anchor="middle" font-size="12" font-weight="600" fill="#475569">信息采集子流程</text>
-                            
-                            <!-- Sub steps -->
-                            <g transform="translate(20, 40)">
-                                <rect x="0" y="0" width="120" height="45" rx="6" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
-                                <text x="60" y="20" text-anchor="middle" font-size="11" fill="#1e40af">配电房检查</text>
-                                <text x="60" y="35" text-anchor="middle" font-size="9" fill="#3b82f6">变压器/开关柜</text>
-                            </g>
-                            
-                            <g transform="translate(160, 40)">
-                                <rect x="0" y="0" width="120" height="45" rx="6" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
-                                <text x="60" y="20" text-anchor="middle" font-size="11" fill="#1e40af">客户走访</text>
-                                <text x="60" y="35" text-anchor="middle" font-size="9" fill="#3b82f6">重点客户/隐患</text>
-                            </g>
-                            
-                            <g transform="translate(300, 40)">
-                                <rect x="0" y="0" width="120" height="45" rx="6" fill="#fee2e2" stroke="#ef4444" stroke-width="1"/>
-                                <text x="60" y="20" text-anchor="middle" font-size="11" fill="#991b1b">应急通道</text>
-                                <text x="60" y="35" text-anchor="middle" font-size="9" fill="#dc2626">GPS位置标注</text>
-                            </g>
-                        </g>
-                        
-                        <!-- Connecting line to sub-process -->
-                        <line x1="350" y1="190" x2="350" y2="220" stroke="#94a3b8" stroke-width="1" stroke-dasharray="3,3"/>
-                    </svg>
+                <h2 class="text-2xl font-bold mb-6 section-title">业务整体说明</h2>
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+                    <p class="text-gray-700 leading-relaxed mb-4">
+                        <strong>Field Info Agent（现场信息收集智能体）</strong>是面向供电所驻点工作场景的智能化辅助系统。
+                        通过企业微信自然语言交互，实现驻点工作的全流程数字化管理。
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                        <div class="bg-white rounded-lg p-4 shadow-sm">
+                            <div class="text-2xl mb-2">🎯</div>
+                            <h4 class="font-semibold text-gray-800 mb-1">核心目标</h4>
+                            <p class="text-sm text-gray-600">提升驻点工作效率，规范信息采集流程，沉淀社区知识资产</p>
+                        </div>
+                        <div class="bg-white rounded-lg p-4 shadow-sm">
+                            <div class="text-2xl mb-2">👥</div>
+                            <h4 class="font-semibold text-gray-800 mb-1">目标用户</h4>
+                            <p class="text-sm text-gray-600">供电所客户经理、抢修人员、驻点工作人员</p>
+                        </div>
+                        <div class="bg-white rounded-lg p-4 shadow-sm">
+                            <div class="text-2xl mb-2">💡</div>
+                            <h4 class="font-semibold text-gray-800 mb-1">交互方式</h4>
+                            <p class="text-sm text-gray-600">零命令自然语言，企业微信消息/照片/位置</p>
+                        </div>
+                    </div>
                 </div>
+            </div>
 
-                <!-- Skills Detail -->
+            <!-- 2. Business Key Modules -->
+            <div class="glass-panel rounded-2xl p-8">
+                <h2 class="text-2xl font-bold mb-6 section-title">业务关键内容模块</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Module 1: Info Preparation -->
+                    <div class="bg-white rounded-xl border-2 border-amber-200 overflow-hidden">
+                        <div class="bg-amber-100 px-6 py-4 border-b border-amber-200">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-amber-500 text-white rounded-lg flex items-center justify-center font-bold">1</div>
+                                <div>
+                                    <h3 class="font-bold text-amber-900">信息预准备</h3>
+                                    <p class="text-sm text-amber-700">工作启动阶段</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <ul class="space-y-3 text-sm">
+                                <li class="flex items-start gap-3">
+                                    <span class="w-6 h-6 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xs flex-shrink-0">✓</span>
+                                    <span class="text-gray-700">自然语言识别驻点意图（"去阳光社区驻点"）</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="w-6 h-6 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xs flex-shrink-0">✓</span>
+                                    <span class="text-gray-700">查询社区历史驻点记录和重点客户</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="w-6 h-6 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xs flex-shrink-0">✓</span>
+                                    <span class="text-gray-700">动态生成工作清单（配电房/走访/应急）</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="w-6 h-6 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-xs flex-shrink-0">✓</span>
+                                    <span class="text-gray-700">初始化Session会话状态</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Module 2: On-site Guidance -->
+                    <div class="bg-white rounded-xl border-2 border-blue-200 overflow-hidden">
+                        <div class="bg-blue-100 px-6 py-4 border-b border-blue-200">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-blue-500 text-white rounded-lg flex items-center justify-center font-bold">2</div>
+                                <div>
+                                    <h3 class="font-bold text-blue-900">现场指引</h3>
+                                    <p class="text-sm text-blue-700">信息采集阶段</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <ul class="space-y-3 text-sm">
+                                <li class="flex items-start gap-3">
+                                    <span class="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs flex-shrink-0">✓</span>
+                                    <span class="text-gray-700">多轮对话引导现场采集流程</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs flex-shrink-0">✓</span>
+                                    <span class="text-gray-700">接收并保存照片到对象存储</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs flex-shrink-0">✓</span>
+                                    <span class="text-gray-700">记录位置信息和文字描述</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs flex-shrink-0">✓</span>
+                                    <span class="text-gray-700">实时触发AI照片分析</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Module 3: Analysis & Review -->
+                    <div class="bg-white rounded-xl border-2 border-purple-200 overflow-hidden">
+                        <div class="bg-purple-100 px-6 py-4 border-b border-purple-200">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-purple-500 text-white rounded-lg flex items-center justify-center font-bold">3</div>
+                                <div>
+                                    <h3 class="font-bold text-purple-900">内容分析审核</h3>
+                                    <p class="text-sm text-purple-700">AI智能处理阶段</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <ul class="space-y-3 text-sm">
+                                <li class="flex items-start gap-3">
+                                    <span class="w-6 h-6 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-xs flex-shrink-0">✓</span>
+                                    <span class="text-gray-700">KIMI多模态识别电力设备类型</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="w-6 h-6 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-xs flex-shrink-0">✓</span>
+                                    <span class="text-gray-700">自动检测设备缺陷（漏油/锈蚀/过热）</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="w-6 h-6 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-xs flex-shrink-0">✓</span>
+                                    <span class="text-gray-700">评估设备状态（正常/注意/异常/危险）</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="w-6 h-6 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-xs flex-shrink-0">✓</span>
+                                    <span class="text-gray-700">批量分析生成整体评估报告</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Module 4: Report Generation -->
+                    <div class="bg-white rounded-xl border-2 border-emerald-200 overflow-hidden">
+                        <div class="bg-emerald-100 px-6 py-4 border-b border-emerald-200">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-emerald-500 text-white rounded-lg flex items-center justify-center font-bold">4</div>
+                                <div>
+                                    <h3 class="font-bold text-emerald-900">报告生成</h3>
+                                    <p class="text-sm text-emerald-700">成果输出阶段</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <ul class="space-y-3 text-sm">
+                                <li class="flex items-start gap-3">
+                                    <span class="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-xs flex-shrink-0">✓</span>
+                                    <span class="text-gray-700">汇总采集数据和分析结果</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-xs flex-shrink-0">✓</span>
+                                    <span class="text-gray-700">Word模板自动填充数据</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-xs flex-shrink-0">✓</span>
+                                    <span class="text-gray-700">自动生成驻点工作记录表</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="w-6 h-6 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-xs flex-shrink-0">✓</span>
+                                    <span class="text-gray-700">归档到知识库更新社区信息</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Skills Detail -->
+            <div class="glass-panel rounded-2xl p-8">
+                <h2 class="text-2xl font-bold mb-6 section-title">核心技能详解</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-amber-50 rounded-xl p-6 border border-amber-200">
                         <div class="flex items-center gap-3 mb-4">
@@ -428,22 +505,10 @@
                             </div>
                         </div>
                         <ul class="space-y-2 text-sm text-amber-800">
-                            <li class="flex items-start gap-2">
-                                <span class="text-amber-500 mt-1">•</span>
-                                <span>自然语言理解用户意图</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="text-amber-500 mt-1">•</span>
-                                <span>动态生成工作清单（配电房/走访/应急）</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="text-amber-500 mt-1">•</span>
-                                <span>多轮对话引导现场采集</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="text-amber-500 mt-1">•</span>
-                                <span>实时保存工作进度</span>
-                            </li>
+                            <li>• 自然语言理解用户意图</li>
+                            <li>• 动态生成工作清单</li>
+                            <li>• 多轮对话引导采集</li>
+                            <li>• 实时保存工作进度</li>
                         </ul>
                     </div>
 
@@ -456,22 +521,10 @@
                             </div>
                         </div>
                         <ul class="space-y-2 text-sm text-purple-800">
-                            <li class="flex items-start gap-2">
-                                <span class="text-purple-500 mt-1">•</span>
-                                <span>设备类型识别（变压器/高压柜等）</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="text-purple-500 mt-1">•</span>
-                                <span>缺陷检测（漏油/锈蚀/过热等）</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="text-purple-500 mt-1">•</span>
-                                <span>状态评估（正常/注意/异常/危险）</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="text-purple-500 mt-1">•</span>
-                                <span>批量分析生成报告</span>
-                            </li>
+                            <li>• 设备类型识别</li>
+                            <li>• 缺陷检测（漏油/锈蚀）</li>
+                            <li>• 状态评估分级</li>
+                            <li>• 批量分析报告</li>
                         </ul>
                     </div>
 
@@ -484,22 +537,10 @@
                             </div>
                         </div>
                         <ul class="space-y-2 text-sm text-emerald-800">
-                            <li class="flex items-start gap-2">
-                                <span class="text-emerald-500 mt-1">•</span>
-                                <span>驻点工作记录表</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="text-emerald-500 mt-1">•</span>
-                                <span>设备缺陷报告</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="text-emerald-500 mt-1">•</span>
-                                <span>安全隐患整改通知单</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="text-emerald-500 mt-1">•</span>
-                                <span>Word模板自动填充</span>
-                            </li>
+                            <li>• 驻点工作记录表</li>
+                            <li>• 设备缺陷报告</li>
+                            <li>• 安全隐患整改通知</li>
+                            <li>• Word模板填充</li>
                         </ul>
                     </div>
 
@@ -512,34 +553,22 @@
                             </div>
                         </div>
                         <ul class="space-y-2 text-sm text-rose-800">
-                            <li class="flex items-start gap-2">
-                                <span class="text-rose-500 mt-1">•</span>
-                                <span>应急关键词自动触发</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="text-rose-500 mt-1">•</span>
-                                <span>GPS位置快速标注</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="text-rose-500 mt-1">•</span>
-                                <span>敏感客户自动查询</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="text-rose-500 mt-1">•</span>
-                                <span>一键上报通知</span>
-                            </li>
+                            <li>• 应急关键词触发</li>
+                            <li>• GPS位置标注</li>
+                            <li>• 敏感客户查询</li>
+                            <li>• 一键上报通知</li>
                         </ul>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Tech Architecture Section -->
+        <!-- Tech Architecture Section - FIXED -->
         <section id="section-tech" class="hidden space-y-8">
             <div class="glass-panel rounded-2xl p-8">
                 <h2 class="text-2xl font-bold mb-6 section-title">技术架构</h2>
                 
-                <!-- Tech Stack Diagram -->
+                <!-- Tech Stack Diagram - FIXED -->
                 <div class="architecture-container mb-8">
                     <svg viewBox="0 0 900 500" class="w-full">
                         <defs>
@@ -561,7 +590,7 @@
                             <text x="80" y="48" text-anchor="middle" font-size="11" fill="#7c3aed">多模态大模型</text>
                         </g>
                         
-                        <!-- OpenClaw Core -->
+                        <!-- OpenClaw Core - FIXED -->
                         <text x="50" y="140" class="layer-label">OpenClaw Gateway</text>
                         <g transform="translate(100, 155)">
                             <rect x="0" y="0" width="500" height="100" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="2"/>
@@ -572,7 +601,8 @@
                                 <text x="50" y="44" text-anchor="middle" font-size="10" fill="#16a34a">网关</text>
                             </g>
                             
-                            <g transform="translate="140, 20)">
+                            <!-- FIXED: removed extra quote -->
+                            <g transform="translate(140, 20)">
                                 <rect x="0" y="0" width="100" height="60" rx="6" fill="#dcfce7" stroke="#22c55e" stroke-width="2"/>
                                 <text x="50" y="26" text-anchor="middle" font-size="12" fill="#166534" font-weight="600">Session</text>
                                 <text x="50" y="44" text-anchor="middle" font-size="10" fill="#16a34a">会话管理</text>
@@ -929,9 +959,9 @@
                         </g>
                         
                         <!-- Arrows -->
-                        <line x1="130" y1="85" x2="200" y2="130" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowData)"/>
-                        <line x1="250" y1="85" x2="250" y2="130" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowData)"/>
-                        <line x1="370" y1="85" x2="300" y2="130" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowData)"/>
+                        <line x1="130" y1="85" x2="200" y2="130" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrowData)"/>
+                        <line x1="250" y1="85" x2="250" y2="130" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrowData)"/>
+                        <line x1="370" y1="85" x2="300" y2="130" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrowData)"/>
                         <line x1="250" y1="200" x2="190" y2="250" stroke="#8b5cf6" stroke-width="1.5" marker-end="url(#arrowData)"/>
                         <line x1="350" y1="200" x2="300" y2="250" stroke="#8b5cf6" stroke-width="1.5" marker-end="url(#arrowData)"/>
                         <line x1="450" y1="200" x2="480" y2="250" stroke="#8b5cf6" stroke-width="1.5" marker-end="url(#arrowData)"/>
