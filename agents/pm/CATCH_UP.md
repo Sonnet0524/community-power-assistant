@@ -6,22 +6,22 @@
 
 ## Quick Status
 
-**Last Updated**: 2026-03-18 15:30  
-**Current Phase**: OpenClaw Skills 标准化完成，项目结构重构  
-**Status**: 🟢 Skills 格式已标准化，README 已更新
+**Last Updated**: 2026-03-19 11:30  
+**Current Phase**: 设计完成，项目介绍已汇报，等待开发启动  
+**Status**: 🟡 开发准备就绪，待Human决策开发团队组建方案
 
 ---
 
 ## Current Focus
 
-**Primary Task**: Field Info Agent的OpenClaw实现结构已完成创建
+**Primary Task**: 等待开发团队组建决策，启动 TASK-001（基础环境搭建）
 
 **Completed Actions**:
 - ✅ 完成技术可行性深度分析（OpenClaw + 企业微信 + KIMI 2.5）
 - ✅ 完成详细设计方案 v2.1（语音→文字、OCR→KIMI多模态）
 - ✅ 完成存储方案设计 v2.2（WPS云文档→本地MinIO+PostgreSQL）
 - ✅ 完成OpenClaw框架可行性验证
-- ✅ 设计并创建11个开发任务（TASK-001到TASK-007）
+- ✅ 设计并创建11个开发任务（TASK-001到TASK-011）
 - ✅ 所有设计文档已提交到Git仓库
 - ✅ **完成**: OpenClaw Agent完整实现结构创建
   - ✅ Agent角色定义（AGENTS.md）
@@ -30,50 +30,53 @@
   - ✅ 数据库Schema（PostgreSQL）
   - ✅ Docker Compose配置（PostgreSQL + MinIO + Redis）
   - ✅ 环境变量模板（.env.example）
-
-**Recent Completed**:
 - ✅ **OpenClaw Skills 标准化** - 所有 SKILL.md 修正为官方标准格式
 - ✅ **README 重构** - 明确区分开发工具和应用项目
 - ✅ **Skills 开发标准文档** - 创建 `OPENCLAW-SKILLS-STANDARD.md`
-- ✅ **emergency-guide SKILL.md** - 创建应急处理引导技能
+- ✅ **架构图优化** - 简化核心层，提交到Git
+- ✅ **项目介绍汇报** - 业务逻辑和技术架构详细介绍
 
 **Next Actions**:
-1. ⏳ 提交变更到 Git 仓库
-2. ⏳ 分配开发团队，启动 TASK-001（基础环境搭建）
+1. ⏳ **Human决策**: 开发团队组建方案
+   - 方案A: 创建专用开发团队Agent（field-core, field-integration等）
+   - 方案B: 使用task工具启动临时Agent执行任务
+2. ⏳ 启动 TASK-001（基础环境搭建）
 3. ⏳ 申请相关 API 权限（企业微信、KIMI 2.5）
 4. ⏳ 开发团队 Review 实现结构，开始编码
 
 ---
 
-## 📝 本次更新要点 (2026-03-18)
+## 📝 本次更新要点 (2026-03-19)
 
-### OpenClaw Skills 标准化
+### 项目介绍汇报
 
-**问题**: 之前创建的 SKILL.md 格式不符合 OpenClaw 官方规范
+**内容**: 向Human详细介绍项目的业务逻辑和技术架构
 
-**修正内容**:
-1. `metadata` 改为单行 JSON 对象格式
-2. 移除 `requires.tools` 和 `requires.channels`（官方不支持）
-3. 移除 `triggers`（应在 openclaw.config.yaml 中配置）
-4. 所有 4 个 Skills 已修正：
-   - `vision-analysis/SKILL.md`
-   - `station-work-guide/SKILL.md`
-   - `doc-generation/SKILL.md`
-   - `emergency-guide/SKILL.md`（新增）
+**业务逻辑总结**:
+- 目标用户：供电所驻点人员（客户经理）
+- 核心场景：出发前准备 → 现场采集 → 智能分析 → 文档生成
+- 四大功能：驻点工作引导、照片智能分析、文档自动生成、应急处置
+- 工作流程状态机：IDLE → PREPARING → COLLECTING → ANALYZING → COMPLETED
 
-**新增文档**:
-- `knowledge-base/field-info-agent/OPENCLAW-SKILLS-STANDARD.md` - 开发标准
+**技术架构总结**:
+```
+用户层: 企业微信APP（拍照 + 文字输入）
+   ↓ WebSocket长连接
+OpenClaw Gateway: WeCom Channel + Session Manager + 4 Skills
+   ↓ REST API
+外部服务: KIMI K2.5 + PostgreSQL + MinIO + Redis（本地部署）
+```
 
-### README 重构
+**关键技术决策**:
+- 语音识别：❌ 移除（用户使用语音输入法）
+- OCR：❌ 移除（KIMI多模态能力更强）
+- 照片分析：KIMI K2.5（国产合规、中文优化）
+- 存储：本地MinIO+PostgreSQL（数据主权、约省¥300/月）
+- 企业微信：长连接模式（支持流式输出）
 
-**变更**: 重新组织仓库 README，明确区分：
-- **开发工具部分**: `agents/` 和 `framework/`（Agent 框架）
-- **应用项目部分**: `knowledge-base/field-info-agent/`（Field Info Agent）
+**成本估算**: ¥500-900/月
 
-**新增内容**:
-- Field Info Agent 项目介绍和技术架构
-- 关键文档导航
-- 项目状态跟踪
+**待Human决策**: 开发团队组建方案
 
 ---
 
@@ -90,12 +93,29 @@
 - **Duration**: 12周（3个月）
 
 ### Team Structure
-| Team | Status | Current Task | Owner |
-|------|--------|--------------|-------|
-| PM | 🟢 Active | 设计完成，协调开发 | PM Agent |
-| Backend Dev | 🟡 Pending | 等待启动 | 待分配 |
-| DevOps | 🟡 Pending | 等待启动 | 待分配 |
-| QA | 🟡 Pending | 等待启动 | 待分配 |
+| Team | Status | Current Task | Owner | Template |
+|------|--------|--------------|-------|----------|
+| PM | 🟢 Active | 设计完成，协调开发 | PM Agent | - |
+| **Core Team** | 🔴 待创建 | TASK-001, TASK-002 | 待分配 | `core-team` |
+| **Integration Team** | 🔴 待创建 | TASK-003 | 待分配 | `integration-team` |
+| **AI Team** | 🟡 计划中 | TASK-004 | 待分配 | `ai-team` |
+| **Test Team** | 🟡 计划中 | TASK-009 | 待分配 | `test-team` |
+
+**团队创建计划**:
+1. 创建 `agents/field-core/` - 负责 OpenClaw Skills 和 Tool 开发
+2. 创建 `agents/field-integration/` - 负责企业微信 Channel 集成
+3. 后续按需创建 AI Team 和 Test Team
+
+**开发任务依赖**:
+```
+TASK-001 (环境搭建)
+    ├── TASK-002 (PostgreSQL/MinIO Tool)
+    ├── TASK-003 (企业微信Channel)
+    │       └── TASK-004 (KIMI多模态集成)
+    │               ├── TASK-005 (StationWorkGuide)
+    │               ├── TASK-006 (DocGeneration)
+    │               └── TASK-007 (EmergencyGuide)
+```
 
 ---
 
@@ -162,6 +182,6 @@
 
 ---
 
-**Last Updated**: 2026-03-18 15:30  
-**Key Changes**: OpenClaw Skills 标准化、README 重构  
-**Next Work**: 提交变更、启动 TASK-001
+**Last Updated**: 2026-03-19 11:30  
+**Key Changes**: 项目介绍汇报、业务逻辑和技术架构详细介绍  
+**Next Work**: 等待Human决策开发团队组建方案
