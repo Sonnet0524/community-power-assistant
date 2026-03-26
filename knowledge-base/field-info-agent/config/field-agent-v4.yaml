@@ -1,0 +1,527 @@
+# Field Info Agent v4.0 - 企业级配置示例
+# 说明: 此配置文件展示v4.0所有可配置项，实际使用时按需启用
+
+version: "4.0.0"
+name: "Field Info Agent - Enterprise"
+description: "支持多用户协作、大规模数据、可插拔配置的企业级现场信息收集系统"
+
+# ============================================
+# 核心配置
+# ============================================
+core:
+  # 应用配置
+  app:
+    name: "field-collector"
+    env: "production"  # development | staging | production
+    debug: false
+    
+  # 会话管理
+  session:
+    timeout: 7200  # 2小时（秒）
+    max_concurrent: 100  # 最大并发会话数
+    cleanup_interval: 3600  # 每小时清理过期会话
+    
+  # 事件系统
+  event_bus:
+    type: "redis"  # memory | redis | kafka
+    redis:
+      host: "${REDIS_HOST}"
+      port: 6379
+      db: 0
+      
+  # 配置管理
+  config:
+    hot_reload: true  # 支持热更新
+    watch_interval: 30  # 秒
+
+# ============================================
+# 插件配置（核心：可插拔架构）
+# ============================================
+plugins:
+  
+  # ----------------------------------------
+  # 存储插件（必选一个）
+  # ----------------------------------------
+  storage:
+    active: "postgresql"  # file | postgresql | mongodb | hybrid
+    
+    # 文件存储（v3.0模式，适合小规模）
+    file:
+      enabled: false
+      config:
+        base_path: "./field-data"
+        communities_dir: "communities"
+        templates_dir: "templates"
+        index_file: "communities-index.md"
+      
+    # PostgreSQL（推荐，适合企业级）
+    postgresql:
+      enabled: true
+      config:
+        host: "${DB_HOST}"
+        port: 5432
+        database: "field_agent"
+        username: "${DB_USER}"
+        password: "${DB_PASSWORD}"
+        pool_size: 20
+        max_overflow: 10
+        
+        # 读写分离
+        replicas:
+          read:
+            - host: "${DB_SLAVE_1}"
+              port: 5432
+              weight: 50
+            - host: "${DB_SLAVE_2}"
+              port: 5432
+              weight: 50
+              
+        # 连接池
+        pool:
+          min_connections: 5
+          max_connections: 100
+          idle_timeout: 300
+          
+    # MongoDB（可选，适合非结构化数据）
+    mongodb:
+      enabled: false
+      config:
+        uri: "${MONGODB_URI}"
+        database: "field_agent"
+        
+    # 混合存储（自动分层）
+    hybrid:
+      enabled: false
+      config:
+        strategy: "time_based"  # time_based | size_based
+        
+        tiers:
+          # 热数据（7天内）
+          hot:
+            storage: "postgresql"
+            retention: "7d"
+            
+          # 温数据（90天内）
+          warm:
+            storage: "mongodb"
+            retention: "90d"
+            
+          # 冷数据（归档）
+          cold:
+            storage: "s3"
+            retention: "forever"
+            
+  # ----------------------------------------
+  # AI分析插件（可切换）
+  # ----------------------------------------
+  ai:
+    active: "openclaw"  # openclaw | kimi | baidu
+    
+    openclaw:
+      enabled: true
+      config:
+        vision_model: "default"
+        text_model: "default"
+        timeout: 30
+        retry_count: 3
+        
+    kimi:
+      enabled: false
+      config:
+        api_key: "${KIMI_API_KEY}"
+        base_url: "https://api.moonshot.cn/v1"
+        model: "kimi-v1"
+        vision_model: "kimi-vision-v1"
+        temperature: 0.3
+        max_tokens: 4096
+        batch_enabled: true
+        batch_size: 10
+        
+    baidu:
+      enabled: false
+      config:
+        api_key: "${BAIDU_API_KEY}"
+        secret_key: "${BAIDU_SECRET_KEY}"
+        services:
+          - ocr
+          - image_classification
+          
+  # ----------------------------------------
+  # 图片存储插件（可切换）
+  # ----------------------------------------
+  image_storage:
+    active: "tiered"  # local | minio | oss | tiered
+    
+    local:
+      enabled: false
+      config:
+        base_path: "./data/images"
+        max_size: "100GB"
+        
+    minio:
+      enabled: false
+      config:
+        endpoint: "${MINIO_ENDPOINT}"
+        access_key: "${MINIO_ACCESS_KEY}"
+        secret_key: "${MINIO_SECRET_KEY}"
+        bucket: "field-images"
+        secure: true
+        
+    aliyun_oss:
+      enabled: false
+      config:
+        endpoint: "oss-cn-hangzhou.aliyuncs.com"
+        access_key_id: "${OSS_ACCESS_KEY}"
+        access_key_secret: "${OSS_SECRET_KEY}"
+        bucket: "field-images"
+        
+    # 分层存储（推荐）
+    tiered:
+      enabled: true
+      config:
+        # 热存储（近期频繁访问）
+        hot:
+          backend: "local"
+          path: "./data/images/hot"
+          retention: "7d"  # 保留7天
+          max_size: "10GB"
+          
+        # 温存储（中期）
+        warm:
+          backend: "minio"
+          endpoint: "${MINIO_ENDPOINT}"
+          bucket: "field-images-warm"
+          retention: "90d"
+          
+        # 冷存储（长期归档）
+        cold:
+          backend: "aliyun-oss"
+          endpoint: "oss-cn-hangzhou.aliyuncs.com"
+          bucket: "field-images-archive"
+          retention: "forever"
+          archive_after: "90d"
+          
+        # 迁移策略
+        migration:
+          auto_migrate: true
+          schedule: "0 2 * * *"  # 每天凌晨2点
+          compress: true
+          compression_ratio: 0.7
+          
+  # ----------------------------------------
+  # 文档生成插件（可切换）
+  # ----------------------------------------
+  doc_generator:
+    active: "both"  # markdown | word | both
+    
+    markdown:
+      enabled: true
+      config:
+        template_path: "./templates/markdown"
+        output_format: "md"
+        include_timestamps: true
+        include_photo_links: true
+        
+    word:
+      enabled: true
+      config:
+        template_path: "./templates/word"
+        output_format: "docx"
+        fonts:
+          - "SimSun"
+          - "SimHei"
+        generate_pdf: true
+        
+  # ----------------------------------------
+  # 搜索插件（可切换）
+  # ----------------------------------------
+  search:
+    active: "hybrid"  # simple | elasticsearch | hybrid
+    
+    simple:
+      enabled: true
+      config:
+        index_file: "./search-index.md"
+        auto_update: true
+        update_interval: 3600  # 每小时
+        
+    elasticsearch:
+      enabled: false
+      config:
+        nodes:
+          - "http://es-node-1:9200"
+          - "http://es-node-2:9200"
+        index_prefix: "field_agent"
+        shards: 5
+        replicas: 1
+        
+  # ----------------------------------------
+  # 协作插件（多用户）
+  # ----------------------------------------
+  collaboration:
+    enabled: true
+    config:
+      mode: "hybrid"  # websocket | polling | hybrid
+      
+      websocket:
+        enabled: true
+        server: "ws://localhost:8080"
+        heartbeat: 30  # 秒
+        reconnect_attempts: 5
+        
+      polling:
+        enabled: true
+        interval: 5  # 秒
+        
+      # 冲突解决策略
+      conflict_resolution:
+        strategy: "last_write_wins"  # last_write_wins | merge | manual
+        merge_function: "deep_merge"
+        notify_on_conflict: true
+        
+      # 在线状态
+      presence:
+        enabled: true
+        timeout: 60  # 秒
+        show_typing: true
+        
+  # ----------------------------------------
+  # 知识图谱插件（可选）
+  # ----------------------------------------
+  knowledge_graph:
+    enabled: false
+    config:
+      backend: "neo4j"
+      neo4j:
+        uri: "bolt://localhost:7687"
+        user: "neo4j"
+        password: "${NEO4J_PASSWORD}"
+        
+      # 自动构建图谱
+      auto_build: true
+      build_interval: 86400  # 每天
+      
+      # 实体类型
+      entities:
+        - community
+        - power_room
+        - transformer
+        - customer
+        - incident
+        - work_record
+        
+  # ----------------------------------------
+  # Git版本管理插件（可选）
+  # ----------------------------------------
+  git:
+    enabled: true
+    config:
+      repo: "./field-data-git"
+      auto_commit: true
+      commit_interval: 3600  # 每小时
+      
+      commit_message_template: |
+        [{{action}}] {{community}} - {{date}}
+        
+        - 操作人: {{user}}
+        - 操作类型: {{type}}
+        - 影响文件: {{files}}
+        
+      branches:
+        main: "主分支，生产数据"
+        staging: "暂存分支，待审核"
+        
+      # 数据备份
+      backup:
+        enabled: true
+        remote: "https://github.com/company/field-data-backup.git"
+        push_interval: 86400  # 每天推送
+
+# ============================================
+# 渠道配置
+# ============================================
+channels:
+  wecom:
+    enabled: true
+    config:
+      corp_id: "${WECOM_CORP_ID}"
+      agent_id: "${WECOM_AGENT_ID}"
+      secret: "${WECOM_SECRET}"
+      token: "${WECOM_TOKEN}"
+      encoding_aes_key: "${WECOM_AES_KEY}"
+      
+      supported_message_types:
+        - text
+        - image
+        - voice
+        - video
+        - location
+        - file
+        
+      # 消息处理
+      message_handler:
+        max_size: 20971520  # 20MB
+        timeout: 30
+        
+      # 回调配置
+      callback:
+        url: "https://your-domain.com/webhook/wecom"
+        mode: "aes"  # clear | aes
+
+# ============================================
+# 安全与权限
+# ============================================
+security:
+  # 认证
+  auth:
+    type: "wecom"  # wecom | jwt | oauth2
+    jwt:
+      secret: "${JWT_SECRET}"
+      expire: 7200
+      
+  # 权限控制
+  rbac:
+    enabled: true
+    roles:
+      - name: "admin"
+        permissions: ["*"]
+        
+      - name: "supervisor"
+        permissions:
+          - "read:*"
+          - "write:own_station"
+          - "manage:users"
+          
+      - name: "worker"
+        permissions:
+          - "read:own_community"
+          - "write:own_work"
+          
+  # 数据隔离
+  data_isolation:
+    enabled: true
+    level: "station"  # station | team | user
+    
+  # 审计日志
+  audit:
+    enabled: true
+    log_all_operations: true
+    retention_days: 365
+
+# ============================================
+# 性能优化
+# ============================================
+performance:
+  # 缓存
+  cache:
+    enabled: true
+    type: "redis"  # memory | redis
+    ttl: 300  # 5分钟
+    
+    # 缓存策略
+    strategies:
+      communities:
+        ttl: 3600  # 1小时
+      work_records:
+        ttl: 600   # 10分钟
+      photos:
+        ttl: 1800  # 30分钟
+        
+  # 异步处理
+  async:
+    enabled: true
+    workers: 4
+    queue_size: 1000
+    
+    tasks:
+      - photo_analysis
+      - doc_generation
+      - index_update
+      - notification
+      
+  # 限流
+  rate_limit:
+    enabled: true
+    requests_per_minute: 100
+    burst: 20
+
+# ============================================
+# 监控与日志
+# ============================================
+monitoring:
+  # 日志
+  logging:
+    level: "info"  # debug | info | warning | error
+    format: "json"
+    
+    handlers:
+      - type: "file"
+        path: "./logs/field-agent.log"
+        max_size: "100MB"
+        backup_count: 10
+        
+      - type: "console"
+        color: true
+        
+  # 指标监控
+  metrics:
+    enabled: true
+    backend: "prometheus"
+    port: 9090
+    
+    # 自定义指标
+    custom_metrics:
+      - name: "active_sessions"
+        type: "gauge"
+      - name: "photos_analyzed"
+        type: "counter"
+      - name: "docs_generated"
+        type: "counter"
+        
+  # 告警
+  alerting:
+    enabled: true
+    channels:
+      - type: "wecom"
+        webhook: "${ALERT_WEBHOOK}"
+        
+    rules:
+      - name: "high_error_rate"
+        condition: "error_rate > 0.05"
+        severity: "warning"
+        
+      - name: "storage_full"
+        condition: "storage_usage > 0.9"
+        severity: "critical"
+
+# ============================================
+# 备份与恢复
+# ============================================
+backup:
+  enabled: true
+  schedule: "0 3 * * *"  # 每天凌晨3点
+  
+  strategies:
+    # 数据库备份
+    database:
+      enabled: true
+      type: "full"  # full | incremental
+      retention: 30  # 保留30天
+      
+    # 图片备份
+    images:
+      enabled: true
+      destination: "s3"
+      s3:
+        bucket: "field-agent-backup"
+        region: "cn-hangzhou"
+        
+    # 配置文件备份
+    config:
+      enabled: true
+      destination: "git"
+      
+  # 恢复
+  restore:
+    automatic: false  # 需要手动确认
+    test_interval: 604800  # 每周测试恢复
