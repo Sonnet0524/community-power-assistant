@@ -277,6 +277,29 @@ field-info-agent-v3-export/                      # 导出包 ⭐新增
 
 ## 🎉 会话总结
 
+## 🆕 新任务：社区AGENT协作优化
+
+**任务**: TASK-008 - 研究并优化社区监控AGENT仓库  
+**目标仓库**: https://github.com/MadaMada51590/community-power-monitoring  
+**状态**: 🟡 等待Human确认仓库访问权限  
+**负责人**: PM Agent  
+**审核要求**: 所有Issue和PR需Human审核通过后提交  
+
+**工作内容**:
+1. 研究目标仓库的设计和实现
+2. 对比我们的v3.0/v4.0架构
+3. 提交Issue和PR改进建议
+4. 所有提交需Human审核
+
+**任务文件**: `tasks/TASK-008-community-power-monitoring.md`
+
+**需要确认**:
+- [ ] 仓库地址是否正确？
+- [ ] 是否需要访问权限？
+- [ ] 审核流程偏好？
+
+---
+
 **本次会话完成**:
 1. ✅ v3.0极简版设计方案
 2. ✅ v4.0企业级架构设计
