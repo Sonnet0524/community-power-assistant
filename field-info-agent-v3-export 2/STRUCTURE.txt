@@ -1,0 +1,25 @@
+field-info-agent-v3-export/
+├── README.md                                    # 主说明文档（必读）
+├── QUICKSTART.md                                # 快速启动指南
+├──
+├── agent/                                       # Agent定义
+│   └── AGENTS-v3-simplified.md                  # Agent角色和职责定义
+│
+├── skills/                                      # Skill文档（3个核心Skill）
+│   ├── photo-collection-SKILL.md               # 照片采集（OpenClaw读图）
+│   ├── doc-generation-SKILL.md                 # 文档生成（Markdown）
+│   └── info-retrieval-SKILL.md                 # 信息检索（全文搜索）
+│
+├── templates/                                   # 文档模板
+│   ├── work-record-template.md                 # 工作记录模板
+│   └── power-briefing-template.md              # 供电简报模板
+│
+├── examples/                                    # 示例文件
+│   ├── community-README-example.md             # 小区档案示例
+│   ├── work-record-example.md                  # 工作记录示例
+│   └── communities-index-example.md            # 小区索引示例
+│
+└── docs/                                        # 设计文档
+    └── DESIGN-v3-simplified.md                 # 完整设计方案
+
+共计: 12个文件，约100KB
