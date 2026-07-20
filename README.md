@@ -1,22 +1,22 @@
-# Community Power Assistant
+# 武侯小智
 
-> 🏠 小区供电服务智能化解决方案
+> 🏠 武侯区供电所现场工作AI助手
 
-**版本**: 1.0.0 | **状态**: 开发中 | **更新**: 2026-03-18
+**版本**: 1.0.0 | **状态**: 开发中 | **更新**: 2026-04-22
 
 ---
 
 ## 📋 关于本仓库
 
-本仓库是基于 **[sonnet0524/agent-team-template](https://github.com/sonnet0524/agent-team-template)** 框架开发的项目，包含 **Field Info Agent（现场信息收集智能体）** 的完整实现。
+本仓库是基于 **[sonnet0524/agent-team-template](https://github.com/sonnet0524/agent-team-template)** 框架开发的项目，包含 **武侯小智** 的完整实现。
 
 ---
 
-## 🎯 Field Info Agent
+## 🎯 武侯小智
 
 ### 项目简介
 
-**Field Info Agent（现场信息收集智能体）** 是一个基于 OpenClaw 框架的驻点工作辅助系统，为供电所驻点人员提供智能化信息收集和分析服务。
+**武侯小智** 是一个基于 OpenClaw 框架的驻点工作AI助手，为武侯区供电所现场工作人员提供智能化信息收集、照片分析和文档生成服务。
 
 ### 核心功能
 
@@ -132,7 +132,7 @@ Agent: ✅ 已生成工作报告，点击下载...
 
 ```
 community-power-assistant/
-├── knowledge-base/field-info-agent/  # 🎯 Field Info Agent 项目
+├── knowledge-base/field-info-agent/  # 🎯 武侯小智 项目
 │   ├── README.md                     # 项目总览 ⭐
 │   ├── OPENCLAW-SKILLS-STANDARD.md   # Skills 开发标准 ⭐
 │   ├── IMPLEMENTATION-SUMMARY.md     # 实现总结 ⭐
@@ -159,7 +159,7 @@ community-power-assistant/
 
 1. **阅读项目文档**
    ```bash
-   # 了解 Field Info Agent 项目
+   # 了解 武侯小智 项目
    cat knowledge-base/field-info-agent/README.md
    ```
 
@@ -184,7 +184,7 @@ community-power-assistant/
 
 | 项目 | 状态 | 说明 |
 |------|------|------|
-| Field Info Agent 设计 | ✅ 完成 | 详细设计 v2.1, v2.2 |
+| 武侯小智 设计 | ✅ 完成 | 详细设计 v2.1, v2.2 |
 | OpenClaw 实现结构 | ✅ 完成 | Agent + Skills + 配置 |
 | Skills 格式标准化 | ✅ 完成 | 符合 OpenClaw 官方规范 |
 | 开发任务规划 | ✅ 完成 | TASK-001 ~ TASK-007 |
@@ -219,6 +219,7 @@ AGPL v3 License
 
 ---
 
+**产品名称**: 武侯小智  
 **维护者**: Sonnet.G  
 **创建日期**: 2026-03-08  
-**最后更新**: 2026-03-18
+**最后更新**: 2026-04-22

@@ -15,7 +15,7 @@
 
 ## Current Focus
 
-**Primary Task**: 完成Field Info Agent的架构设计文档
+**Primary Task**: 完成武侯小智（Field Info Agent）的架构设计文档
 
 **Completed Actions**:
 - ✅ **v3.0极简版设计完成**
